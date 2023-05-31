@@ -4,7 +4,7 @@ type TokenType string
 
 const (
 	// Single-character tokens
-	L_PAREN   = "LEFT_PAREN"
+	L_PAREN   = "LEFT_PARENT"
 	R_PAREN   = "RIGHT_PARENT"
 	L_BRACE   = "LEFT_BRACE"
 	R_BRACE   = "RIGHT_BRACE"
