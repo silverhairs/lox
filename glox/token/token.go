@@ -1,7 +1,5 @@
 package token
 
-import "fmt"
-
 type TokenType string
 
 const (
@@ -68,8 +66,4 @@ func New(Type TokenType, Lexeme string, Literal any, Line int) *Token {
 		Lexeme:  Lexeme,
 		Line:    Line,
 	}
-}
-
-func (t *Token) String() string {
-	return fmt.Sprintf("%s %+v %s", t.Type, t.Lexeme, t.Literal)
 }
