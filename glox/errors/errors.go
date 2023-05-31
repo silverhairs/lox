@@ -7,10 +7,10 @@ type GloxError struct {
 	Message string
 }
 
-func Report(line int32, msg string) *GloxError {
+func Report(line int32, where string, msg string) *GloxError {
 	return &GloxError{
 		Line:    line,
-		Message: msg,
+		Message: fmt.Sprintf("%s @ %s", msg, where),
 	}
 }
 

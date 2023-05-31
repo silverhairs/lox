@@ -2,6 +2,8 @@ package glox
 
 import (
 	"bufio"
+	"craftinginterpreters/errors"
+	"craftinginterpreters/scanner"
 	"fmt"
 	"io"
 	"os"
@@ -9,10 +11,16 @@ import (
 
 const PROMPT = "> "
 
+var caughtErrors = []string{}
+
+func hadError() bool {
+	return len(caughtErrors) > 0
+}
+
 func RunFile(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
-		return err
+		return errors.Report(0, path, err.Error())
 	}
 	defer file.Close()
 
@@ -44,9 +52,9 @@ func StartREPL(r io.Reader) {
 }
 
 func run(src string) {
-	lxr := lexer.New(src)
+	scnr := scanner.New(src)
 
-	tokens := lxr.Tokenize()
+	tokens := scnr.ScanTokens()
 	for _, tok := range tokens {
 		fmt.Println(tok)
 	}
