@@ -3,11 +3,11 @@ package errors
 import "fmt"
 
 type GloxError struct {
-	Line    int32
+	Line    int
 	Message string
 }
 
-func Report(line int32, where string, msg string) *GloxError {
+func Report(line int, where string, msg string) *GloxError {
 	return &GloxError{
 		Line:    line,
 		Message: fmt.Sprintf("%s @ %s", msg, where),

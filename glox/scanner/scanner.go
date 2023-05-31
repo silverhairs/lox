@@ -1,6 +1,10 @@
 package scanner
 
-import "craftinginterpreters/token"
+import (
+	"craftinginterpreters/errors"
+	"craftinginterpreters/token"
+	"fmt"
+)
 
 type Scanner struct {
 	Source  string
@@ -22,16 +26,63 @@ func New(Source string) *Scanner {
 	return scnr
 }
 
-func (s *Scanner) ScanTokens() []*token.Token {
+func (s *Scanner) Tokenize() []*token.Token {
 	for !s.isAtEnd() {
+		s.scanToken()
 		s.start = s.current
-		s.ScanTokens()
+		s.Tokenize()
 	}
 
-	s.tokens = append(s.tokens, token.New(token.EOF, "EOF", nil, s.line))
+	s.tokens = append(s.tokens, token.New(token.EOF, "", nil, s.line))
 	return s.tokens
+}
+
+func (s *Scanner) scanToken() {
+	char := s.advance()
+
+	switch char {
+	case '(':
+		s.recordToken(token.L_PAREN)
+	case ')':
+		s.recordToken(token.R_PAREN)
+	case '{':
+		s.recordToken(token.L_BRACE)
+	case '}':
+		s.recordToken(token.R_BRACE)
+	case ',':
+		s.recordToken(token.COMMA)
+	case '.':
+		s.recordToken(token.DOT)
+	case '-':
+		s.recordToken(token.MINUS)
+	case '/':
+		s.recordToken(token.SLASH)
+	case '+':
+		s.recordToken(token.PLUS)
+	case ';':
+		s.recordToken(token.SEMICOLON)
+	case '*':
+		s.recordToken(token.ASTERISK)
+	default:
+		errors.Report(s.line, "", fmt.Sprintf("unexpected character %v", char))
+	}
 }
 
 func (s *Scanner) isAtEnd() bool {
 	return s.current >= len(s.Source)
+}
+
+func (s *Scanner) advance() byte {
+	s.current += 1
+	return s.Source[s.current]
+}
+
+func (s *Scanner) recordToken(tokenType token.TokenType) {
+	s.addToken(tokenType, nil)
+}
+
+func (s *Scanner) addToken(tokenType token.TokenType, literal any) {
+	lexeme := s.Source[s.start:s.current]
+	tok := token.New(tokenType, lexeme, literal, s.line)
+	s.tokens = append(s.tokens, tok)
 }

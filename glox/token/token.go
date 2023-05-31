@@ -6,27 +6,27 @@ type TokenType string
 
 const (
 	// Single-character tokens
-	LEFT_PAREN  = "("
-	RIGHT_PAREN = ")"
-	LEFT_BRACE  = "{"
-	RIGHT_BRACE = "}"
-	COMMA       = ","
-	DOT         = "."
-	MINUS       = "-"
-	PLUS        = "+"
-	SEMICOLON   = ";"
-	SLASH       = "/"
-	STAR        = "*"
+	L_PAREN   = "LEFT_PAREN"
+	R_PAREN   = "RIGHT_PARENT"
+	L_BRACE   = "LEFT_BRACE"
+	R_BRACE   = "RIGHT_BRACE"
+	COMMA     = "COMMA"
+	DOT       = "DOT"
+	MINUS     = "MINUS"
+	PLUS      = "PLUS"
+	SEMICOLON = "SEMICOLON"
+	SLASH     = "SLASH"
+	ASTERISK  = "ASTERISK"
 
 	// One or two characters tokens
-	BANG          = "!"
-	BANG_EQUAL    = "!="
-	EQUAL         = "="
-	EQUAL_EQUAL   = "=="
-	GREATER       = ">"
-	GREATER_EQUAL = ">="
-	LESS          = "<"
-	LESS_EQUAL    = "<="
+	BANG       = "BANG"
+	BANG_EQ    = "BANG_EQUAL"
+	EQUAL      = "EQUAL"
+	EQ_EQ      = "EQUAL_EQUAL"
+	GREATER    = "GREATER"
+	GREATER_EQ = "GREATER_EQUAL"
+	LESS       = "LESS"
+	LESS_EQ    = "LESS_EQUAL"
 
 	// Literals
 	IDENTIFIER = "IDENT"
@@ -34,34 +34,34 @@ const (
 	NUMBER     = "NUM"
 
 	// Keywords
-	AND      = "and"
-	CLASS    = "class"
-	ELSE     = "else"
-	IF       = "if"
-	FALSE    = "false"
-	FUNCTION = "fn"
-	FOR      = "for"
-	OR       = "or"
-	NIL      = "nil"
-	PRINT    = "print"
-	RETURN   = "return"
-	SUPER    = "super"
-	THIS     = "this"
-	TRUE     = "true"
-	LET      = "let"
-	WHILE    = "while"
+	AND      = "AND"
+	CLASS    = "CLASS"
+	ELSE     = "ELSE"
+	IF       = "IF"
+	FALSE    = "FALSE"
+	FUNCTION = "FUNCTION"
+	FOR      = "FOR"
+	OR       = "OR"
+	NIL      = "NIL"
+	PRINT    = "PRINT"
+	RETURN   = "RETURN"
+	SUPER    = "SUPER"
+	THIS     = "THIS"
+	TRUE     = "TRUE"
+	LET      = "LET"
+	WHILE    = "WHILE"
 
-	EOF = ""
+	EOF = "EOF"
 )
 
 type Token struct {
 	Type    TokenType
-	Lexeme  any
-	Literal string
+	Literal any
+	Lexeme  string
 	Line    int
 }
 
-func New(Type TokenType, Literal string, Lexeme any, Line int) *Token {
+func New(Type TokenType, Lexeme string, Literal any, Line int) *Token {
 	return &Token{
 		Literal: Literal,
 		Type:    Type,

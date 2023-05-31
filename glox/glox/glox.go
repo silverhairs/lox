@@ -11,12 +11,6 @@ import (
 
 const PROMPT = "> "
 
-var caughtErrors = []string{}
-
-func hadError() bool {
-	return len(caughtErrors) > 0
-}
-
 func RunFile(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
@@ -54,7 +48,7 @@ func StartREPL(r io.Reader) {
 func run(src string) {
 	scnr := scanner.New(src)
 
-	tokens := scnr.ScanTokens()
+	tokens := scnr.Tokenize()
 	for _, tok := range tokens {
 		fmt.Println(tok)
 	}
