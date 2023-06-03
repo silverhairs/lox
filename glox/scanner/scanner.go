@@ -63,6 +63,35 @@ func (s *Scanner) scanToken() {
 		s.recordToken(token.SEMICOLON)
 	case '*':
 		s.recordToken(token.ASTERISK)
+	case '!':
+		s.recordOperator(struct {
+			char     byte
+			unique   token.TokenType
+			twoChars token.TokenType
+		}{char, token.BANG, token.BANG_EQ},
+		)
+	case '=':
+		s.recordOperator(struct {
+			char     byte
+			unique   token.TokenType
+			twoChars token.TokenType
+		}{char, token.EQUAL, token.EQ_EQ},
+		)
+	case '<':
+		s.recordOperator(
+			struct {
+				char     byte
+				unique   token.TokenType
+				twoChars token.TokenType
+			}{char, token.LESS, token.LESS_EQ},
+		)
+	case '>':
+		s.recordOperator(struct {
+			char     byte
+			unique   token.TokenType
+			twoChars token.TokenType
+		}{char, token.GREATER, token.GREATER_EQ},
+		)
 	default:
 		errors.Report(s.line, "", fmt.Sprintf("unexpected character %v", char))
 	}
@@ -85,4 +114,31 @@ func (s *Scanner) addToken(tokenType token.TokenType, literal any) {
 	lexeme := s.Source[s.start:s.current]
 	tok := token.New(tokenType, lexeme, literal, s.line)
 	s.tokens = append(s.tokens, tok)
+}
+
+func (s *Scanner) match(expect byte) bool {
+
+	if !s.isAtEnd() {
+		if s.Source[s.current] == expect {
+			s.current++
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *Scanner) recordOperator(props struct {
+	char     byte
+	unique   token.TokenType
+	twoChars token.TokenType
+}) {
+	var tok token.TokenType
+	if s.match(props.char) {
+		tok = props.twoChars
+	} else {
+		tok = props.unique
+	}
+
+	s.recordToken(tok)
 }
