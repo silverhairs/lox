@@ -6,6 +6,9 @@ import (
 	"fmt"
 )
 
+// Workaround to represent`nil` as a byte. Equivalent of `\0` in java.
+const NULL = '#'
+
 type Scanner struct {
 	Source  string
 	tokens  []*token.Token
@@ -55,8 +58,6 @@ func (s *Scanner) scanToken() {
 		s.recordToken(token.DOT)
 	case '-':
 		s.recordToken(token.MINUS)
-	case '/':
-		s.recordToken(token.SLASH)
 	case '+':
 		s.recordToken(token.PLUS)
 	case ';':
@@ -92,6 +93,15 @@ func (s *Scanner) scanToken() {
 			twoChars token.TokenType
 		}{char, token.GREATER, token.GREATER_EQ},
 		)
+	case '/':
+		// To handle comments
+		if s.match(char) {
+			for s.peek() != '\n' && !s.isAtEnd() {
+				s.advance()
+			}
+			return
+		}
+		s.recordToken(token.SLASH)
 	default:
 		errors.Report(s.line, "", fmt.Sprintf("unexpected character %v", char))
 	}
@@ -141,4 +151,11 @@ func (s *Scanner) recordOperator(props struct {
 	}
 
 	s.recordToken(tok)
+}
+
+func (s *Scanner) peek() byte {
+	if s.isAtEnd() {
+		return NULL
+	}
+	return s.Source[s.current]
 }
