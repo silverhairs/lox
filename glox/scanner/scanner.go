@@ -4,6 +4,7 @@ import (
 	"craftinginterpreters/errors"
 	"craftinginterpreters/token"
 	"fmt"
+	"strconv"
 )
 
 // Workaround to represent `nil` as a byte. Equivalent of `\0` in java.
@@ -99,10 +100,9 @@ func (s *Scanner) scanToken() {
 			for s.peek() != '\n' && !s.isAtEnd() {
 				s.advance()
 			}
-			return
+		} else {
+			s.recordToken(token.SLASH)
 		}
-		s.recordToken(token.SLASH)
-	// Ignoring white spaces
 	case ' ':
 	case '\r':
 	case '\t':
@@ -112,7 +112,11 @@ func (s *Scanner) scanToken() {
 	case '"':
 		s.string()
 	default:
-		errors.Nowhere(s.line, fmt.Sprintf("unexpected character %v", char))
+		if isDigit(char) {
+			s.number()
+		} else {
+			errors.Nowhere(s.line, fmt.Sprintf("unexpected character %v", char))
+		}
 	}
 }
 
@@ -188,4 +192,37 @@ func (s *Scanner) string() {
 
 	value := s.Source[s.start+1 : s.current-1]
 	s.addToken(token.STRING, value)
+}
+
+// Scans number literals, this handles all floating-point numbers with or without decimals.
+func (s *Scanner) number() {
+	for isDigit(s.peek()) {
+		s.advance()
+	}
+
+	if s.peek() == '.' && isDigit(s.peekNext()) {
+		s.advance()
+		for isDigit(s.peek()) {
+			s.advance()
+		}
+	}
+	literal := s.Source[s.start:s.current]
+	value, err := strconv.ParseFloat(literal, 64)
+	if err != nil {
+		errors.Nowhere(s.line, fmt.Sprintf("%q is an invalid %q", literal, token.NUMBER))
+		return
+	}
+	s.addToken(token.NUMBER, value)
+}
+
+func isDigit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
+}
+
+func (s *Scanner) peekNext() byte {
+	if s.current+1 >= len(s.Source) {
+		return NULL
+	}
+
+	return s.Source[s.current+1]
 }
