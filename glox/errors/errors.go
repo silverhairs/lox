@@ -14,6 +14,11 @@ func Report(line int, where string, msg string) *GloxError {
 	}
 }
 
+// Calls `errors.Report` with an empty string for the `where` argument.
+func Nowhere(line int, msg string) *GloxError {
+	return Report(line, "", msg)
+}
+
 func (e *GloxError) Error() string {
 	return fmt.Sprintf("[line %d] Error: %s", e.Line, e.Message)
 }

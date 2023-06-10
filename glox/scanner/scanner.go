@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-// Workaround to represent`nil` as a byte. Equivalent of `\0` in java.
+// Workaround to represent `nil` as a byte. Equivalent of `\0` in java.
 const NULL = '#'
 
 type Scanner struct {
@@ -102,8 +102,17 @@ func (s *Scanner) scanToken() {
 			return
 		}
 		s.recordToken(token.SLASH)
+	// Ignoring white spaces
+	case ' ':
+	case '\r':
+	case '\t':
+		break
+	case '\n':
+		s.line++
+	case '"':
+		s.string()
 	default:
-		errors.Report(s.line, "", fmt.Sprintf("unexpected character %v", char))
+		errors.Nowhere(s.line, fmt.Sprintf("unexpected character %v", char))
 	}
 }
 
@@ -140,8 +149,8 @@ func (s *Scanner) match(expect byte) bool {
 
 func (s *Scanner) recordOperator(props struct {
 	char     byte
-	unique   token.TokenType
-	twoChars token.TokenType
+	unique   token.TokenType // If the lexeme has only one character, which token type should be recorded.
+	twoChars token.TokenType // If the lexeme has two characters, which token type should be recorded.
 }) {
 	var tok token.TokenType
 	if s.match(props.char) {
@@ -158,4 +167,25 @@ func (s *Scanner) peek() byte {
 		return NULL
 	}
 	return s.Source[s.current]
+}
+
+// Scans a string literal.
+func (s *Scanner) string() {
+	for s.peek() != '"' && !s.isAtEnd() {
+		if s.peek() == '\n' {
+			// Multi-line string literals are allowed
+			s.line++
+			s.advance()
+		}
+	}
+
+	if s.isAtEnd() {
+		errors.Nowhere(s.line, "Please add a double-quote at the end of the string.")
+		return
+	}
+
+	s.advance()
+
+	value := s.Source[s.start+1 : s.current-1]
+	s.addToken(token.STRING, value)
 }
