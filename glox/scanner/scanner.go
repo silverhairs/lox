@@ -44,41 +44,41 @@ func (s *Scanner) scanToken() {
 
 	switch char {
 	case '(':
-		s.recordToken(token.L_PAREN)
+		s.addTokenType(token.L_PAREN)
 	case ')':
-		s.recordToken(token.R_PAREN)
+		s.addTokenType(token.R_PAREN)
 	case '{':
-		s.recordToken(token.L_BRACE)
+		s.addTokenType(token.L_BRACE)
 	case '}':
-		s.recordToken(token.R_BRACE)
+		s.addTokenType(token.R_BRACE)
 	case ',':
-		s.recordToken(token.COMMA)
+		s.addTokenType(token.COMMA)
 	case '.':
-		s.recordToken(token.DOT)
+		s.addTokenType(token.DOT)
 	case '-':
-		s.recordToken(token.MINUS)
+		s.addTokenType(token.MINUS)
 	case '+':
-		s.recordToken(token.PLUS)
+		s.addTokenType(token.PLUS)
 	case ';':
-		s.recordToken(token.SEMICOLON)
+		s.addTokenType(token.SEMICOLON)
 	case '*':
-		s.recordToken(token.ASTERISK)
+		s.addTokenType(token.ASTERISK)
 	case '!':
-		s.recordOperator(struct {
+		s.operator(struct {
 			char     byte
 			unique   token.TokenType
 			twoChars token.TokenType
 		}{char, token.BANG, token.BANG_EQ},
 		)
 	case '=':
-		s.recordOperator(struct {
+		s.operator(struct {
 			char     byte
 			unique   token.TokenType
 			twoChars token.TokenType
 		}{char, token.EQUAL, token.EQ_EQ},
 		)
 	case '<':
-		s.recordOperator(
+		s.operator(
 			struct {
 				char     byte
 				unique   token.TokenType
@@ -86,7 +86,7 @@ func (s *Scanner) scanToken() {
 			}{char, token.LESS, token.LESS_EQ},
 		)
 	case '>':
-		s.recordOperator(struct {
+		s.operator(struct {
 			char     byte
 			unique   token.TokenType
 			twoChars token.TokenType
@@ -99,7 +99,7 @@ func (s *Scanner) scanToken() {
 				s.advance()
 			}
 		} else {
-			s.recordToken(token.SLASH)
+			s.addTokenType(token.SLASH)
 		}
 	case ' ':
 	case '\r':
@@ -129,7 +129,7 @@ func (s *Scanner) advance() byte {
 	return s.Source[s.current]
 }
 
-func (s *Scanner) recordToken(tokenType token.TokenType) {
+func (s *Scanner) addTokenType(tokenType token.TokenType) {
 	s.addToken(tokenType, nil)
 }
 
@@ -151,7 +151,7 @@ func (s *Scanner) match(expect byte) bool {
 	return false
 }
 
-func (s *Scanner) recordOperator(props struct {
+func (s *Scanner) operator(props struct {
 	char     byte
 	unique   token.TokenType // If the lexeme has only one character, which token type should be recorded.
 	twoChars token.TokenType // If the lexeme has two characters, which token type should be recorded.
@@ -163,7 +163,7 @@ func (s *Scanner) recordOperator(props struct {
 		tok = props.unique
 	}
 
-	s.recordToken(tok)
+	s.addTokenType(tok)
 }
 
 func (s *Scanner) peek() byte {
@@ -243,5 +243,5 @@ func (s *Scanner) identifier() {
 	literal := s.Source[s.start:s.current]
 	tok := token.LookupIdentifier(literal)
 
-	s.recordToken(tok)
+	s.addTokenType(tok)
 }
