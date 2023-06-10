@@ -67,3 +67,31 @@ func New(Type TokenType, Lexeme string, Literal any, Line int) *Token {
 		Line:    Line,
 	}
 }
+
+var keywords = map[string]TokenType{
+	"and":    AND,
+	"class":  CLASS,
+	"else":   ELSE,
+	"false":  FALSE,
+	"true":   TRUE,
+	"for":    FOR,
+	"fn":     FUNCTION,
+	"if":     IF,
+	"nil":    NIL,
+	"or":     OR,
+	"print":  PRINT,
+	"return": RETURN,
+	"super":  SUPER,
+	"this":   THIS,
+	"let":    LET,
+	"while":  WHILE,
+}
+
+func LookupIdentifier(keyword string) TokenType {
+	tok, ok := keywords[keyword]
+	if ok {
+		return tok
+	}
+
+	return IDENTIFIER
+}

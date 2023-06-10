@@ -19,15 +19,13 @@ type Scanner struct {
 }
 
 func New(Source string) *Scanner {
-	scnr := &Scanner{
+	return &Scanner{
 		Source:  Source,
 		tokens:  make([]*token.Token, 0),
 		start:   0,
 		current: 0,
 		line:    1,
 	}
-
-	return scnr
 }
 
 func (s *Scanner) Tokenize() []*token.Token {
@@ -114,8 +112,10 @@ func (s *Scanner) scanToken() {
 	default:
 		if isDigit(char) {
 			s.number()
+		} else if isAlpha(char) {
+			s.identifier()
 		} else {
-			errors.Nowhere(s.line, fmt.Sprintf("unexpected character %v", char))
+			errors.Nowhere(s.line, fmt.Sprintf("Unexpected character %q", char))
 		}
 	}
 }
@@ -225,4 +225,23 @@ func (s *Scanner) peekNext() byte {
 	}
 
 	return s.Source[s.current+1]
+}
+
+func isAlpha(char byte) bool {
+	return char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z' || char == '_'
+}
+
+func isAlphaNumeric(char byte) bool {
+	return isAlpha(char) || isDigit(char)
+}
+
+func (s *Scanner) identifier() {
+	for isAlphaNumeric(s.peek()) {
+		s.advance()
+	}
+
+	literal := s.Source[s.start:s.current]
+	tok := token.LookupIdentifier(literal)
+
+	s.recordToken(tok)
 }
