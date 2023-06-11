@@ -68,14 +68,14 @@ func (s *Scanner) scanToken() {
 			char     byte
 			unique   token.TokenType
 			twoChars token.TokenType
-		}{char, token.BANG, token.BANG_EQ},
+		}{'=', token.BANG, token.BANG_EQ},
 		)
 	case '=':
 		s.operator(struct {
 			char     byte
 			unique   token.TokenType
 			twoChars token.TokenType
-		}{char, token.EQUAL, token.EQ_EQ},
+		}{'=', token.EQUAL, token.EQ_EQ},
 		)
 	case '<':
 		s.operator(
@@ -83,14 +83,14 @@ func (s *Scanner) scanToken() {
 				char     byte
 				unique   token.TokenType
 				twoChars token.TokenType
-			}{char, token.LESS, token.LESS_EQ},
+			}{'=', token.LESS, token.LESS_EQ},
 		)
 	case '>':
 		s.operator(struct {
 			char     byte
 			unique   token.TokenType
 			twoChars token.TokenType
-		}{char, token.GREATER, token.GREATER_EQ},
+		}{'=', token.GREATER, token.GREATER_EQ},
 		)
 	case '/':
 		// To handle comments
@@ -125,8 +125,9 @@ func (s *Scanner) isAtEnd() bool {
 }
 
 func (s *Scanner) advance() byte {
-	s.current += 1
-	return s.Source[s.current]
+	prev := s.current
+	s.current++
+	return s.Source[prev]
 }
 
 func (s *Scanner) addTokenType(tokenType token.TokenType) {
@@ -140,15 +141,12 @@ func (s *Scanner) addToken(tokenType token.TokenType, literal any) {
 }
 
 func (s *Scanner) match(expect byte) bool {
-
-	if !s.isAtEnd() {
-		if s.Source[s.current] == expect {
-			s.current++
-			return true
-		}
+	if s.isAtEnd() || s.Source[s.current] != expect {
+		return false
 	}
 
-	return false
+	s.current++
+	return true
 }
 
 func (s *Scanner) operator(props struct {
