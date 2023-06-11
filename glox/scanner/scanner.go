@@ -250,7 +250,7 @@ func (s *Scanner) slash() {
 			s.advance()
 		}
 
-		if s.match('/') && !s.isAtEnd() {
+		if !s.isAtEnd() && s.match('/') {
 			literal := s.Source[s.start+2 : s.current-2]
 			s.addToken(token.COMMENT_B, literal)
 		} else {
