@@ -93,14 +93,7 @@ func (s *Scanner) scanToken() {
 		}{'=', token.GREATER, token.GREATER_EQ},
 		)
 	case '/':
-		// To handle comments
-		if s.match(char) {
-			for s.peek() != '\n' && !s.isAtEnd() {
-				s.advance()
-			}
-		} else {
-			s.addTokenType(token.SLASH)
-		}
+		s.slash()
 	case ' ':
 	case '\r':
 	case '\t':
@@ -242,4 +235,29 @@ func (s *Scanner) identifier() {
 	tok := token.LookupIdentifier(literal)
 
 	s.addTokenType(tok)
+}
+
+func (s *Scanner) slash() {
+	if s.match('/') {
+		for s.peek() != '\n' && !s.isAtEnd() {
+			s.advance()
+		}
+		literal := s.Source[s.start+2 : s.current]
+		s.addToken(token.COMMENT_L, literal)
+
+	} else if s.match('*') {
+		for s.peek() != '*' && !s.isAtEnd() {
+			s.advance()
+		}
+
+		if s.match('/') && !s.isAtEnd() {
+			literal := s.Source[s.start+2 : s.current-2]
+			s.addToken(token.COMMENT_B, literal)
+		} else {
+			errors.Nowhere(s.line, "opened multi-line comment has not been closed.")
+		}
+
+	} else {
+		s.addTokenType(token.SLASH)
+	}
 }
