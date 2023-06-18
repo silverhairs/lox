@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-const PROMPT = "> "
+const PROMPT = ">> "
 
 func RunFile(path string) error {
 	file, err := os.Open(path)
