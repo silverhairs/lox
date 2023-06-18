@@ -170,8 +170,8 @@ func (s *Lexer) string() {
 		if s.peek() == '\n' {
 			// Multi-line string literals are allowed
 			s.line++
-			s.advance()
 		}
+		s.advance()
 	}
 
 	if s.isAtEnd() {
