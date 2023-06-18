@@ -1,4 +1,4 @@
-package scanner
+package lexer
 
 import (
 	"craftinginterpreters/errors"
@@ -10,7 +10,7 @@ import (
 // Workaround to represent `nil` as a byte. Equivalent of `\0` in java.
 const NULL = '#'
 
-type Scanner struct {
+type Lexer struct {
 	Source  string
 	tokens  []*token.Token
 	start   int
@@ -18,8 +18,8 @@ type Scanner struct {
 	line    int
 }
 
-func New(Source string) *Scanner {
-	return &Scanner{
+func New(Source string) *Lexer {
+	return &Lexer{
 		Source:  Source,
 		tokens:  make([]*token.Token, 0),
 		start:   0,
@@ -28,18 +28,18 @@ func New(Source string) *Scanner {
 	}
 }
 
-func (s *Scanner) Tokenize() []*token.Token {
+func (lxr *Lexer) Tokenize() []*token.Token {
 
-	for !s.isAtEnd() {
-		s.start = s.current
-		s.scanToken()
+	for !lxr.isAtEnd() {
+		lxr.start = lxr.current
+		lxr.lex()
 	}
 
-	s.tokens = append(s.tokens, token.New(token.EOF, "", nil, s.line))
-	return s.tokens
+	lxr.tokens = append(lxr.tokens, token.New(token.EOF, "", nil, lxr.line))
+	return lxr.tokens
 }
 
-func (s *Scanner) scanToken() {
+func (s *Lexer) lex() {
 	char := s.advance()
 
 	switch char {
@@ -113,27 +113,27 @@ func (s *Scanner) scanToken() {
 	}
 }
 
-func (s *Scanner) isAtEnd() bool {
+func (s *Lexer) isAtEnd() bool {
 	return s.current >= len(s.Source)
 }
 
-func (s *Scanner) advance() byte {
+func (s *Lexer) advance() byte {
 	prev := s.current
 	s.current++
 	return s.Source[prev]
 }
 
-func (s *Scanner) addTokenType(tokenType token.TokenType) {
+func (s *Lexer) addTokenType(tokenType token.TokenType) {
 	s.addToken(tokenType, nil)
 }
 
-func (s *Scanner) addToken(tokenType token.TokenType, literal any) {
+func (s *Lexer) addToken(tokenType token.TokenType, literal any) {
 	lexeme := s.Source[s.start:s.current]
 	tok := token.New(tokenType, lexeme, literal, s.line)
 	s.tokens = append(s.tokens, tok)
 }
 
-func (s *Scanner) match(expect byte) bool {
+func (s *Lexer) match(expect byte) bool {
 	if s.isAtEnd() || s.Source[s.current] != expect {
 		return false
 	}
@@ -142,7 +142,7 @@ func (s *Scanner) match(expect byte) bool {
 	return true
 }
 
-func (s *Scanner) operator(props struct {
+func (s *Lexer) operator(props struct {
 	char     byte
 	unique   token.TokenType // If the lexeme has only one character, which token type should be recorded.
 	twoChars token.TokenType // If the lexeme has two characters, which token type should be recorded.
@@ -157,15 +157,15 @@ func (s *Scanner) operator(props struct {
 	s.addTokenType(tok)
 }
 
-func (s *Scanner) peek() byte {
+func (s *Lexer) peek() byte {
 	if s.isAtEnd() {
 		return NULL
 	}
 	return s.Source[s.current]
 }
 
-// Scans a string literal.
-func (s *Scanner) string() {
+// tokenizes a string literal.
+func (s *Lexer) string() {
 	for s.peek() != '"' && !s.isAtEnd() {
 		if s.peek() == '\n' {
 			// Multi-line string literals are allowed
@@ -186,7 +186,7 @@ func (s *Scanner) string() {
 }
 
 // Scans number literals, this handles all floating-point numbers with or without decimals.
-func (s *Scanner) number() {
+func (s *Lexer) number() {
 	for isDigit(s.peek()) {
 		s.advance()
 	}
@@ -210,7 +210,7 @@ func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
 
-func (s *Scanner) peekNext() byte {
+func (s *Lexer) peekNext() byte {
 	if s.current+1 >= len(s.Source) {
 		return NULL
 	}
@@ -226,7 +226,7 @@ func isAlphaNumeric(char byte) bool {
 	return isAlpha(char) || isDigit(char)
 }
 
-func (s *Scanner) identifier() {
+func (s *Lexer) identifier() {
 	for isAlphaNumeric(s.peek()) {
 		s.advance()
 	}
@@ -237,7 +237,7 @@ func (s *Scanner) identifier() {
 	s.addTokenType(tok)
 }
 
-func (s *Scanner) slash() {
+func (s *Lexer) slash() {
 	if s.match('/') {
 		for s.peek() != '\n' && !s.isAtEnd() {
 			s.advance()

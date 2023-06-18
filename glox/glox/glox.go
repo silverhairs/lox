@@ -3,7 +3,7 @@ package glox
 import (
 	"bufio"
 	"craftinginterpreters/errors"
-	"craftinginterpreters/scanner"
+	"craftinginterpreters/lexer"
 	"fmt"
 	"io"
 	"os"
@@ -46,7 +46,7 @@ func StartREPL(r io.Reader) {
 }
 
 func run(src string) {
-	scnr := scanner.New(src)
+	scnr := lexer.New(src)
 
 	tokens := scnr.Tokenize()
 	for _, tok := range tokens {
