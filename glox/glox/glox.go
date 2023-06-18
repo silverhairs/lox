@@ -50,6 +50,6 @@ func run(src string) {
 
 	tokens := scnr.Tokenize()
 	for _, tok := range tokens {
-		fmt.Println(tok)
+		fmt.Printf("%+v\n", tok)
 	}
 }
