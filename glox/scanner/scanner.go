@@ -29,10 +29,10 @@ func New(Source string) *Scanner {
 }
 
 func (s *Scanner) Tokenize() []*token.Token {
+
 	for !s.isAtEnd() {
-		s.scanToken()
 		s.start = s.current
-		s.Tokenize()
+		s.scanToken()
 	}
 
 	s.tokens = append(s.tokens, token.New(token.EOF, "", nil, s.line))
@@ -250,7 +250,7 @@ func (s *Scanner) slash() {
 			s.advance()
 		}
 
-		if !s.isAtEnd() && s.match('/') {
+		if s.match('/') {
 			literal := s.Source[s.start+2 : s.current-2]
 			s.addToken(token.COMMENT_B, literal)
 		} else {

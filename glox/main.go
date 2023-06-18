@@ -8,7 +8,6 @@ import (
 
 func main() {
 	args := os.Args
-	fmt.Printf("Number or args: %d\n The argument is %q", len(args), args)
 	if len(args) < 1 {
 		fmt.Printf("Usage: glox [script]\n")
 		os.Exit(64)
