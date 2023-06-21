@@ -1,1 +1,2 @@
-# Implementation of the Lox language from the
+# Implementation of the Lox language in Go
+
