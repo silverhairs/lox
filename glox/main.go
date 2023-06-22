@@ -1,8 +1,8 @@
 package main
 
 import (
-	"craftinginterpreters/cmd"
 	"fmt"
+	"glox/cmd"
 	"os"
 )
 

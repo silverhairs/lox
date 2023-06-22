@@ -1,9 +1,9 @@
 package lexer
 
 import (
-	"craftinginterpreters/errors"
-	"craftinginterpreters/token"
 	"fmt"
+	"glox/errors"
+	"glox/token"
 	"strconv"
 )
 

@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"bufio"
-	"craftinginterpreters/errors"
-	"craftinginterpreters/lexer"
 	"fmt"
+	"glox/errors"
+	"glox/lexer"
 	"io"
 	"os"
 )

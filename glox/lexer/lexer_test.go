@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"craftinginterpreters/token"
+	"glox/token"
 	"testing"
 )
 
