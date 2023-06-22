@@ -1,7 +1,7 @@
 package main
 
 import (
-	"craftinginterpreters/glox"
+	"craftinginterpreters/cmd"
 	"fmt"
 	"os"
 )
@@ -13,9 +13,9 @@ func main() {
 		os.Exit(64)
 
 	} else if len(args) == 1 {
-		glox.RunFile(args[0])
+		cmd.RunFile(args[0])
 
 	} else {
-		glox.StartREPL(os.Stdin)
+		cmd.StartREPL(os.Stdin)
 	}
 }

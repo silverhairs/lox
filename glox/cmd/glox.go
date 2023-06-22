@@ -1,4 +1,4 @@
-package glox
+package cmd
 
 import (
 	"bufio"
