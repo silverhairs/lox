@@ -6,7 +6,7 @@
 
 The currently implemented rules of the language's grammar.
 
-```bnf
+```ebnf
     expression -> literal
                 | unary
                 | binary
