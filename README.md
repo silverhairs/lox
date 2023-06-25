@@ -4,7 +4,7 @@
 
 ## Grammar
 
-The currently implemented rules of the language's grammar.
+Productions for the Language's grammar.
 
 ```ebnf
     expression -> literal
