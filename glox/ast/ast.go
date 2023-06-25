@@ -5,13 +5,13 @@ import (
 	"fmt"
 )
 
-type ExpName string
+type ExpType string
 
 const (
-	BINARY_EXP  ExpName = "binary"
-	UNARY_EXP   ExpName = "unary"
-	GROUP_EXP   ExpName = "group"
-	LITERAL_EXP ExpName = "literal"
+	BINARY_EXP  ExpType = "binary"
+	UNARY_EXP   ExpType = "unary"
+	GROUP_EXP   ExpType = "group"
+	LITERAL_EXP ExpType = "literal"
 )
 
 type Expression interface {
@@ -19,7 +19,7 @@ type Expression interface {
 	Describe() string
 }
 
-func parenthesize(name ExpName, expressions ...Expression) string {
+func parenthesize(name ExpType, expressions ...Expression) string {
 	var out bytes.Buffer
 
 	out.WriteString("(")
