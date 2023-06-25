@@ -6,9 +6,9 @@ import (
 )
 
 type Binary struct {
-	Left     Expression[any]
+	Left     Expression
 	Operator token.Token
-	Right    Expression[any]
+	Right    Expression
 }
 
 func (exp *Binary) String() string {
@@ -21,12 +21,10 @@ func (exp *Binary) String() string {
 	return out.String()
 }
 
-// FIXME: Generic should not be `any`. This is a workaround
-// due to the limitation in Go's typesystem.
-func (exp *Binary) Accept(visitor Vistor[any]) any {
-	return visitor.VisitBinary(exp)
+func NewBinaryExpression(left Expression, operator token.Token, right Expression) *Binary {
+	return &Binary{left, operator, right}
 }
 
-func NewBinaryExpression(left Exp, operator token.Token, right Exp) *Binary {
-	return &Binary{left, operator, right}
+func (exp *Binary) Describe() string {
+	return parenthesize(BINARY_EXP, exp)
 }

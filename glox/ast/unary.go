@@ -7,7 +7,7 @@ import (
 
 type Unary struct {
 	Operator token.Token
-	Right    Expression[any]
+	Right    Expression
 }
 
 func (exp *Unary) String() string {
@@ -19,12 +19,10 @@ func (exp *Unary) String() string {
 	return out.String()
 }
 
-// FIXME: Generic should not be `any`. This is a workaround
-// due to the limitation in Go's typesystem.
-func (exp *Unary) Accept(visitor Vistor[any]) any {
-	return visitor.VisitUnary(exp)
+func (exp *Unary) Describe() string {
+	return parenthesize(UNARY_EXP, exp)
 }
 
-func NewUnaryExpression(operator token.Token, right Exp) *Unary {
+func NewUnaryExpression(operator token.Token, right Expression) *Unary {
 	return &Unary{operator, right}
 }

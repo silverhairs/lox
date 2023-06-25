@@ -3,7 +3,7 @@ package ast
 import "bytes"
 
 type Grouping struct {
-	Exp Expression[any]
+	Exp Expression
 }
 
 func (exp *Grouping) String() string {
@@ -16,12 +16,10 @@ func (exp *Grouping) String() string {
 	return out.String()
 }
 
-// FIXME: Generic should not be `any`. This is a workaround
-// due to the limitation in Go's typesystem.
-func (exp *Grouping) Accept(visitor Vistor[any]) any {
-	return visitor.VisitGrouping(exp)
+func (exp *Grouping) Describe() string {
+	return parenthesize(GROUP_EXP, exp)
 }
 
-func NewGroupingExp(exp Exp) *Grouping {
+func NewGroupingExp(exp Expression) *Grouping {
 	return &Grouping{exp}
 }

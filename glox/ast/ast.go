@@ -2,34 +2,28 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 )
+
+type ExpName string
 
 const (
-	BINARY_EXP  = "binary"
-	UNARY_EXP   = "unary"
-	GROUP_EXP   = "group"
-	LITERAL_EXP = "literal"
+	BINARY_EXP  ExpName = "binary"
+	UNARY_EXP   ExpName = "unary"
+	GROUP_EXP   ExpName = "group"
+	LITERAL_EXP ExpName = "literal"
 )
 
-type Exp Expression[any]
-
-type Expression[R any] interface {
+type Expression interface {
 	String() string
-	Accept(v Vistor[R]) R
+	Describe() string
 }
 
-type Vistor[T any] interface {
-	VisitBinary(exp *Binary) T
-	VisitUnary(exp *Unary) T
-	VisitLiteral(exp *Literal) T
-	VisitGrouping(exp *Grouping) T
-}
-
-func parenthesize(name string, expressions ...Expression[any]) string {
+func parenthesize(name ExpName, expressions ...Expression) string {
 	var out bytes.Buffer
 
 	out.WriteString("(")
-	out.WriteString(name)
+	out.WriteString(fmt.Sprintf("%v", name))
 
 	for _, exp := range expressions {
 		out.WriteString(" ")
@@ -38,27 +32,4 @@ func parenthesize(name string, expressions ...Expression[any]) string {
 	out.WriteString(")")
 
 	return out.String()
-}
-
-type PrettyPrinter struct {
-}
-
-func (p *PrettyPrinter) VisitBinary(exp *Binary) string {
-	return parenthesize(BINARY_EXP, exp)
-}
-
-func (p *PrettyPrinter) VisitGrouping(exp *Grouping) string {
-	return parenthesize(GROUP_EXP, exp)
-}
-
-func (p *PrettyPrinter) VisitUnary(exp *Unary) string {
-	return parenthesize(UNARY_EXP, exp)
-}
-
-func (p *PrettyPrinter) VisitLiteral(exp *Literal) string {
-	return parenthesize(LITERAL_EXP, exp)
-}
-
-func (p *PrettyPrinter) Format(exp Exp) string {
-	text := exp.Accept(p)
 }
