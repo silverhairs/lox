@@ -4,9 +4,9 @@
 
 ## Grammar
 
-Productions for the Language's grammar.
+Production rules:
 
-```ebnf
+```txt
     expression -> literal
                 | unary
                 | binary
