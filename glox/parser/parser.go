@@ -141,7 +141,14 @@ func (p *Parser) primary() ast.Expression {
 		return ast.NewGroupingExp(exp)
 	}
 
-	p.consume(p.peek().Type, "could not parse token")
+	p.consume(token.EOF, "illegal token")
 	return p.expression()
 
+}
+
+func (p *Parser) consume(tokType token.TokenType, mesage string) token.Token {
+	if p.check(tokType) {
+		return p.advance()
+	}
+	panic(error(p.peek(), mesage))
 }
