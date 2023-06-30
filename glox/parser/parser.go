@@ -2,6 +2,7 @@ package parser
 
 import (
 	"glox/ast"
+	"glox/errors"
 	"glox/token"
 )
 
@@ -18,11 +19,16 @@ const (
 
 type Parser struct {
 	tokens   []token.Token
+	errors   []string
 	position int
 }
 
 func NewParser(tokens []token.Token) *Parser {
 	return &Parser{tokens: tokens, position: 0}
+}
+
+func (p *Parser) Errors() []string {
+	return p.errors
 }
 
 func (p *Parser) expression() ast.Expression {
@@ -137,8 +143,9 @@ func (p *Parser) primary() ast.Expression {
 	if p.match(token.L_PAREN) {
 		exp := p.expression()
 
-		p.consume(token.R_PAREN, "Expect ')' after expression.")
-		return ast.NewGroupingExp(exp)
+		if _, err := p.consume(token.R_PAREN, "Expect ')' after expression."); err != nil {
+			return ast.NewGroupingExp(exp)
+		}
 	}
 
 	p.consume(token.EOF, "illegal token")
@@ -146,9 +153,21 @@ func (p *Parser) primary() ast.Expression {
 
 }
 
-func (p *Parser) consume(tokType token.TokenType, mesage string) token.Token {
+func (p *Parser) consume(tokType token.TokenType, message string) (token.Token, error) {
 	if p.check(tokType) {
-		return p.advance()
+		return p.advance(), nil
 	}
-	panic(error(p.peek(), mesage))
+	tok := p.peek()
+	err := captureError(tok, message)
+	p.errors = append(p.errors, err.Error())
+
+	return tok, err
+}
+
+func captureError(tok token.Token, msg string) error {
+	if tok.Type == token.EOF {
+		return errors.New(tok.Line, " at end", msg)
+	}
+
+	return errors.New(tok.Line, "at '"+tok.Lexeme+"'", msg)
 }

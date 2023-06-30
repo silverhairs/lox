@@ -108,7 +108,7 @@ func (s *Lexer) lex() {
 		} else if isAlpha(char) {
 			s.identifier()
 		} else {
-			errors.Nowhere(s.line, fmt.Sprintf("Unexpected character %q", char))
+			errors.Short(s.line, fmt.Sprintf("Unexpected character %q", char))
 		}
 	}
 }
@@ -175,7 +175,7 @@ func (s *Lexer) string() {
 	}
 
 	if s.isAtEnd() {
-		errors.Nowhere(s.line, "Please add a double-quote at the end of the string.")
+		errors.Short(s.line, "Please add a double-quote at the end of the string.")
 		return
 	}
 
@@ -200,7 +200,7 @@ func (s *Lexer) number() {
 	literal := s.Source[s.start:s.current]
 	value, err := strconv.ParseFloat(literal, 64)
 	if err != nil {
-		errors.Nowhere(s.line, fmt.Sprintf("%q is an invalid %q", literal, token.NUMBER))
+		errors.Short(s.line, fmt.Sprintf("%q is an invalid %q", literal, token.NUMBER))
 		return
 	}
 	s.addToken(token.NUMBER, value)
@@ -254,7 +254,7 @@ func (s *Lexer) slash() {
 			literal := s.Source[s.start+2 : s.current-2]
 			s.addToken(token.COMMENT_B, literal)
 		} else {
-			errors.Nowhere(s.line, "opened multi-line comment has not been closed.")
+			errors.Short(s.line, "opened multi-line comment has not been closed.")
 		}
 
 	} else {
