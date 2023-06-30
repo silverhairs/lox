@@ -143,9 +143,9 @@ func (p *Parser) primary() ast.Expression {
 	if p.match(token.L_PAREN) {
 		exp := p.expression()
 
-		if _, err := p.consume(token.R_PAREN, "Expect ')' after expression."); err != nil {
-			return ast.NewGroupingExp(exp)
-		}
+		p.consume(token.R_PAREN, "Expect ')' after expression.")
+		return ast.NewGroupingExp(exp)
+
 	}
 
 	p.consume(token.EOF, "illegal token")
@@ -153,15 +153,16 @@ func (p *Parser) primary() ast.Expression {
 
 }
 
-func (p *Parser) consume(tokType token.TokenType, message string) (token.Token, error) {
+func (p *Parser) consume(tokType token.TokenType, message string) token.Token {
 	if p.check(tokType) {
-		return p.advance(), nil
+		return p.advance()
 	}
 	tok := p.peek()
 	err := captureError(tok, message)
-	p.errors = append(p.errors, err.Error())
+	//TODO: Maybe later capure the error instead of panicking.
+	// p.errors = append(p.errors, err.Error())
+	panic(err)
 
-	return tok, err
 }
 
 func captureError(tok token.Token, msg string) error {
