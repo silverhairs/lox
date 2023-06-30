@@ -143,13 +143,12 @@ func (p *Parser) primary() ast.Expression {
 	if p.match(token.L_PAREN) {
 		exp := p.expression()
 
-		p.consume(token.R_PAREN, "Expect ')' after expression.")
+		p.consume(token.R_PAREN, "expect ')' after expression.")
 		return ast.NewGroupingExp(exp)
 
 	}
 
-	p.consume(token.EOF, "illegal token")
-	return p.expression()
+	panic(captureError(p.peek(), "expect expression."))
 
 }
 
@@ -171,4 +170,34 @@ func captureError(tok token.Token, msg string) error {
 	}
 
 	return errors.New(tok.Line, "at '"+tok.Lexeme+"'", msg)
+}
+
+// Discards tokens that might case cascaded errors
+func (p *Parser) synchronize() {
+	p.advance()
+
+	for !p.isAtEnd() {
+		if p.previous().Type == token.SEMICOLON {
+			return
+		}
+
+		for _, stmt := range statements {
+			if p.peek().Type == stmt {
+				return
+			}
+		}
+		p.advance()
+	}
+
+}
+
+var statements = []token.TokenType{
+	token.CLASS,
+	token.FUNCTION,
+	token.LET,
+	token.FOR,
+	token.IF,
+	token.WHILE,
+	token.PRINT,
+	token.RETURN,
 }
