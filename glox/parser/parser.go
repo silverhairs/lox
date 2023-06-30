@@ -23,12 +23,16 @@ type Parser struct {
 	position int
 }
 
-func NewParser(tokens []token.Token) *Parser {
+func New(tokens []token.Token) *Parser {
 	return &Parser{tokens: tokens, position: 0}
 }
 
 func (p *Parser) Errors() []string {
 	return p.errors
+}
+
+func (p *Parser) Parse() ast.Expression {
+	return p.expression()
 }
 
 func (p *Parser) expression() ast.Expression {
@@ -143,12 +147,12 @@ func (p *Parser) primary() ast.Expression {
 	if p.match(token.L_PAREN) {
 		exp := p.expression()
 
-		p.consume(token.R_PAREN, "expect ')' after expression.")
+		p.consume(token.R_PAREN, "expect ')' after expression")
 		return ast.NewGroupingExp(exp)
 
 	}
 
-	panic(captureError(p.peek(), "expect expression."))
+	panic(captureError(p.peek(), "expect expression"))
 
 }
 
@@ -169,35 +173,35 @@ func captureError(tok token.Token, msg string) error {
 		return errors.New(tok.Line, " at end", msg)
 	}
 
-	return errors.New(tok.Line, "at '"+tok.Lexeme+"'", msg)
+	return errors.New(tok.Line, "'"+tok.Lexeme+"'", msg)
 }
 
 // Discards tokens that might case cascaded errors
-func (p *Parser) synchronize() {
-	p.advance()
+// func (p *Parser) synchronize() {
+// 	p.advance()
 
-	for !p.isAtEnd() {
-		if p.previous().Type == token.SEMICOLON {
-			return
-		}
+// 	for !p.isAtEnd() {
+// 		if p.previous().Type == token.SEMICOLON {
+// 			return
+// 		}
 
-		for _, stmt := range statements {
-			if p.peek().Type == stmt {
-				return
-			}
-		}
-		p.advance()
-	}
+// 		for _, stmt := range statements {
+// 			if p.peek().Type == stmt {
+// 				return
+// 			}
+// 		}
+// 		p.advance()
+// 	}
 
-}
+// }
 
-var statements = []token.TokenType{
-	token.CLASS,
-	token.FUNCTION,
-	token.LET,
-	token.FOR,
-	token.IF,
-	token.WHILE,
-	token.PRINT,
-	token.RETURN,
-}
+// var statements = []token.TokenType{
+// 	token.CLASS,
+// 	token.FUNCTION,
+// 	token.LET,
+// 	token.FOR,
+// 	token.IF,
+// 	token.WHILE,
+// 	token.PRINT,
+// 	token.RETURN,
+// }

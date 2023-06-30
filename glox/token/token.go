@@ -61,14 +61,14 @@ type Token struct {
 	Line    int
 }
 
-func New(Type TokenType, Lexeme string, Literal any, Line int) *Token {
-	return &Token{
-		Literal: Literal,
-		Type:    Type,
-		Lexeme:  Lexeme,
-		Line:    Line,
-	}
-}
+// func New(Type TokenType, Lexeme string, Literal any, Line int) *Token {
+// 	return &Token{
+// 		Literal: Literal,
+// 		Type:    Type,
+// 		Lexeme:  Lexeme,
+// 		Line:    Line,
+// 	}
+// }
 
 var keywords = map[string]TokenType{
 	"and":    AND,

@@ -12,7 +12,7 @@ const NULL = '#'
 
 type Lexer struct {
 	Source  string
-	tokens  []*token.Token
+	tokens  []token.Token
 	start   int
 	current int
 	line    int
@@ -21,21 +21,21 @@ type Lexer struct {
 func New(Source string) *Lexer {
 	return &Lexer{
 		Source:  Source,
-		tokens:  make([]*token.Token, 0),
+		tokens:  make([]token.Token, 0),
 		start:   0,
 		current: 0,
 		line:    1,
 	}
 }
 
-func (lxr *Lexer) Tokenize() []*token.Token {
+func (lxr *Lexer) Tokenize() []token.Token {
 
 	for !lxr.isAtEnd() {
 		lxr.start = lxr.current
 		lxr.lex()
 	}
 
-	lxr.tokens = append(lxr.tokens, token.New(token.EOF, "", nil, lxr.line))
+	lxr.tokens = append(lxr.tokens, token.Token{Type: token.EOF, Literal: nil, Lexeme: "", Line: lxr.line})
 	return lxr.tokens
 }
 
@@ -129,7 +129,7 @@ func (s *Lexer) addTokenType(tokenType token.TokenType) {
 
 func (s *Lexer) addToken(tokenType token.TokenType, literal any) {
 	lexeme := s.Source[s.start:s.current]
-	tok := token.New(tokenType, lexeme, literal, s.line)
+	tok := token.Token{Type: tokenType, Literal: literal, Lexeme: lexeme, Line: s.line}
 	s.tokens = append(s.tokens, tok)
 }
 
