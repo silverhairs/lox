@@ -12,6 +12,7 @@ const (
 	UNARY_EXP   ExpType = "unary"
 	GROUP_EXP   ExpType = "group"
 	LITERAL_EXP ExpType = "literal"
+	TERNARY_EXP ExpType = "ternary"
 )
 
 type Expression interface {
