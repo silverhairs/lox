@@ -20,6 +20,7 @@ func TestTokenize(t *testing.T) {
 	// this is a comment
 	this.name
 	super.person
+	true ? 5 : 10
 	`
 
 	tests := []struct {
@@ -67,6 +68,11 @@ func TestTokenize(t *testing.T) {
 		{token.SUPER, "super"},
 		{token.DOT, "."},
 		{token.IDENTIFIER, "person"},
+		{token.TRUE, "true"},
+		{token.QUESTION_MARK, "?"},
+		{token.NUMBER, "5"},
+		{token.COLON, ":"},
+		{token.NUMBER, "10"},
 		{token.EOF, ""},
 	}
 

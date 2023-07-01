@@ -13,11 +13,11 @@ func (exp *Grouping) String() string {
 	out.WriteString(exp.Exp.String())
 	out.WriteString(" )")
 
-	return out.String()
+	return parenthesize(exp.Type(), out.String())
 }
 
-func (exp *Grouping) Describe() string {
-	return parenthesize(GROUP_EXP, exp)
+func (exp *Grouping) Type() ExpType {
+	return GROUP_EXP
 }
 
 func NewGroupingExp(exp Expression) *Grouping {

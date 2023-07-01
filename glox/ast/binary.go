@@ -18,13 +18,13 @@ func (exp *Binary) String() string {
 	out.WriteString(" " + exp.Operator.Lexeme + " ")
 	out.WriteString(exp.Right.String())
 
-	return out.String()
+	return parenthesize(exp.Type(), out.String())
 }
 
 func NewBinaryExpression(left Expression, operator token.Token, right Expression) *Binary {
 	return &Binary{left, operator, right}
 }
 
-func (exp *Binary) Describe() string {
-	return parenthesize(BINARY_EXP, exp)
+func (exp *Binary) Type() ExpType {
+	return BINARY_EXP
 }

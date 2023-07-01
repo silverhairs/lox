@@ -4,17 +4,19 @@ type TokenType string
 
 const (
 	// Single-character tokens
-	L_PAREN   = "LEFT_PARENT"
-	R_PAREN   = "RIGHT_PARENT"
-	L_BRACE   = "LEFT_BRACE"
-	R_BRACE   = "RIGHT_BRACE"
-	COMMA     = "COMMA"
-	DOT       = "DOT"
-	MINUS     = "MINUS"
-	PLUS      = "PLUS"
-	SEMICOLON = "SEMICOLON"
-	SLASH     = "SLASH"
-	ASTERISK  = "ASTERISK"
+	L_PAREN       = "LEFT_PARENT"
+	R_PAREN       = "RIGHT_PARENT"
+	L_BRACE       = "LEFT_BRACE"
+	R_BRACE       = "RIGHT_BRACE"
+	COMMA         = "COMMA"
+	DOT           = "DOT"
+	MINUS         = "MINUS"
+	PLUS          = "PLUS"
+	SEMICOLON     = "SEMICOLON"
+	SLASH         = "SLASH"
+	ASTERISK      = "ASTERISK"
+	QUESTION_MARK = "QUESTION_MARK"
+	COLON         = "COLON"
 
 	// One or two characters tokens
 	BANG       = "BANG"

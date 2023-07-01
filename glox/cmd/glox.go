@@ -52,6 +52,6 @@ func run(src string) {
 	tokens := scnr.Tokenize()
 	prsr := parser.New(tokens)
 	exp := prsr.Parse()
-	fmt.Println(exp.Describe())
+	fmt.Println(exp.String())
 
 }

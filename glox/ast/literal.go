@@ -7,11 +7,11 @@ type Literal struct {
 }
 
 func (exp *Literal) String() string {
-	return fmt.Sprintf("%v", exp.Value)
+	return parenthesize(exp.Type(), fmt.Sprintf(" %v ", exp.Value))
 }
 
-func (exp *Literal) Describe() string {
-	return parenthesize(LITERAL_EXP, exp)
+func (exp *Literal) Type() ExpType {
+	return LITERAL_EXP
 }
 
 func NewLiteralExpression(val any) *Literal {

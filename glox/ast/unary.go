@@ -16,11 +16,11 @@ func (exp *Unary) String() string {
 	out.WriteString("( " + exp.Operator.Lexeme + " ) ")
 	out.WriteString(exp.Right.String())
 
-	return out.String()
+	return parenthesize(exp.Type(), out.String())
 }
 
-func (exp *Unary) Describe() string {
-	return parenthesize(UNARY_EXP, exp)
+func (exp *Unary) Type() ExpType {
+	return UNARY_EXP
 }
 
 func NewUnaryExpression(operator token.Token, right Expression) *Unary {
