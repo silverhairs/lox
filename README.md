@@ -10,7 +10,8 @@ Production rules:
     expression -> literal
                 | unary
                 | binary
-                | grouping ;
+                | grouping
+                | ternary ;
 
     literal    -> NUMBER | STRING | boolean | "nil" ;
     unary      -> ( "-" | "!" ) expression ;
@@ -18,4 +19,5 @@ Production rules:
     binary     -> expression operator expression ;
     operator   -> "==" | "!=" | "<" | ">" | "<=" | ">="
                 | "+" | "-" | "*" | "/" ;
+    ternary -> expression "?" expression ":" expression
 ```

@@ -63,6 +63,10 @@ func (s *Lexer) lex() {
 		s.addTokenType(token.SEMICOLON)
 	case '*':
 		s.addTokenType(token.ASTERISK)
+	case '?':
+		s.addTokenType(token.QUESTION_MARK)
+	case ':':
+		s.addTokenType(token.COLON)
 	case '!':
 		s.operator(struct {
 			char     byte
