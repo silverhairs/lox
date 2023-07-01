@@ -28,3 +28,13 @@ func (exp *Ternary) String() string {
 func (exp *Ternary) Describe() string {
 	return parenthesize(TERNARY_EXP, exp)
 }
+
+func NewTernaryConditional(condition Expression, leftOperator token.Token, positive Expression, rightOperator token.Token, negative Expression) *Ternary {
+	return &Ternary{
+		Condition:     condition,
+		LeftOperator:  leftOperator,
+		RightOperator: rightOperator,
+		True:          positive,
+		False:         negative,
+	}
+}

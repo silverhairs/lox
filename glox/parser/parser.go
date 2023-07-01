@@ -9,6 +9,7 @@ import (
 const (
 	_          int = iota
 	EXPRESSION     // -> equality
+	TERNARY        // Operators:: [?:]l Associates: `R`
 	EQUALITY       // Operators: [==, !=] ;  Associates: `L`
 	COMPARISON     // Operators: [>, >= <=, <] ; Associates: `L`
 	TERM           // Operators: [+, -] ; Associates: `L`
@@ -36,7 +37,26 @@ func (p *Parser) Parse() ast.Expression {
 }
 
 func (p *Parser) expression() ast.Expression {
-	return p.equality()
+	return p.ternary()
+}
+
+func (p *Parser) ternary() ast.Expression {
+	exp := p.equality()
+
+	for p.match(token.QUESTION_MARK) {
+		left := p.previous()
+		positive := p.equality()
+
+		for p.match(token.COLON) {
+			right := p.previous()
+			negative := p.ternary()
+
+			exp = ast.NewTernaryConditional(exp, left, positive, right, negative)
+		}
+
+	}
+
+	return exp
 }
 
 func (p *Parser) equality() ast.Expression {

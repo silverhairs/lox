@@ -19,5 +19,5 @@ Production rules:
     binary     -> expression operator expression ;
     operator   -> "==" | "!=" | "<" | ">" | "<=" | ">="
                 | "+" | "-" | "*" | "/" ;
-    ternary -> expression "?" expression ":" expression
+    ternary -> expression "?" expression ":" expression;
 ```
