@@ -53,7 +53,5 @@ func run(src string) {
 	prsr := parser.New(tokens)
 	exp := prsr.Parse()
 	fmt.Println(exp.Describe())
-	// for _, tok := range tokens {
-	// 	fmt.Printf("%+v\n", tok)
-	// }
+
 }
