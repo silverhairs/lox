@@ -22,11 +22,11 @@ func (exp *Ternary) String() string {
 	out.WriteString(" " + exp.RightOperator.Lexeme + " ")
 	out.WriteString("(" + exp.False.String() + ")")
 
-	return out.String()
+	return parenthesize(exp.Type(), out.String())
 }
 
-func (exp *Ternary) Describe() string {
-	return parenthesize(TERNARY_EXP, exp)
+func (exp *Ternary) Type() ExpType {
+	return TERNARY_EXP
 }
 
 func NewTernaryConditional(condition Expression, leftOperator token.Token, positive Expression, rightOperator token.Token, negative Expression) *Ternary {

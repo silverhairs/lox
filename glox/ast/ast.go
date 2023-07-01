@@ -2,7 +2,6 @@ package ast
 
 import (
 	"bytes"
-	"fmt"
 )
 
 type ExpType string
@@ -17,19 +16,14 @@ const (
 
 type Expression interface {
 	String() string
-	Describe() string
+	Type() ExpType
 }
 
-func parenthesize(name ExpType, expressions ...Expression) string {
+func parenthesize(name ExpType, value string) string {
 	var out bytes.Buffer
 
-	out.WriteString("(")
-	out.WriteString(fmt.Sprintf("%v", name))
-
-	for _, exp := range expressions {
-		out.WriteString(" ")
-		out.WriteString(exp.String())
-	}
+	out.WriteString("( " + string(name))
+	out.WriteString(value)
 	out.WriteString(")")
 
 	return out.String()
