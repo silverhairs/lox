@@ -22,9 +22,9 @@ type Expression interface {
 func parenthesize(name ExpType, value string) string {
 	var out bytes.Buffer
 
-	out.WriteString("( " + string(name))
+	out.WriteString("(" + string(name) + " ")
 	out.WriteString(value)
-	out.WriteString(")")
+	out.WriteString(" )")
 
 	return out.String()
 }
