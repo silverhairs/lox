@@ -37,8 +37,8 @@ func TestParseTernary(t *testing.T) {
 	if condition.Operator.Type != token.GREATER {
 		t.Fatalf("exp.Operator.Type is not token.GREATER. got=%q", string(condition.Operator.Type))
 	}
-	testLiteral(condition.Right, "1", t)
 
+	testLiteral(condition.Right, "1", t)
 	testLiteral(exp.True, "abc", t)
 	testLiteral(exp.False, "123", t)
 
