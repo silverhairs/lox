@@ -15,7 +15,7 @@ func (p *printer) Print(exp Expression) string {
 		return str
 	}
 
-	panic(fmt.Sprintf("%+v cannot accept *ASTPrinter", exp))
+	panic(fmt.Sprintf("%T %+v cannot accept *ASTPrinter", exp, exp))
 }
 
 func (p *printer) VisitBinary(binary *Binary) any {
