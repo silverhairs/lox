@@ -15,17 +15,17 @@ const (
 )
 
 type Visitor interface {
-	VisitBinary(exp *Binary) any
-	VisitUnary(exp *Unary) any
-	VisitGrouping(exp *Grouping) any
-	VisitLiteral(exp *Literal) any
-	VisitTernary(exp *Ternary) any
+	VisitBinary(exp *Binary) interface{}
+	VisitUnary(exp *Unary) interface{}
+	VisitGrouping(exp *Grouping) interface{}
+	VisitLiteral(exp *Literal) interface{}
+	VisitTernary(exp *Ternary) interface{}
 }
 
 type Expression interface {
 	String() string
 	Type() ExpType
-	Accept(Visitor) any
+	Accept(Visitor) interface{}
 }
 
 func parenthesize(name ExpType, value string) string {

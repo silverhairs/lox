@@ -84,7 +84,7 @@ func TestParseBinary(t *testing.T) {
 
 }
 
-func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) {
+func testLiteral(exp ast.Expression, expectedValue interface{}, t *testing.T) {
 	isLiteral, literal := assertLiteral(exp, ast.NewLiteralExpression(expectedValue))
 	if !isLiteral {
 		t.Fatalf("result.Left is not *ast.Literal. got=%T", exp)

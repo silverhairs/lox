@@ -131,7 +131,7 @@ func (s *Lexer) addTokenType(tokenType token.TokenType) {
 	s.addToken(tokenType, nil)
 }
 
-func (s *Lexer) addToken(tokenType token.TokenType, literal any) {
+func (s *Lexer) addToken(tokenType token.TokenType, literal interface{}) {
 	lexeme := s.Source[s.start:s.current]
 	tok := token.Token{Type: tokenType, Literal: literal, Lexeme: lexeme, Line: s.line}
 	s.tokens = append(s.tokens, tok)

@@ -29,6 +29,6 @@ func (exp *Binary) Type() ExpType {
 	return BINARY_EXP
 }
 
-func (exp *Binary) Accept(v Visitor) any {
+func (exp *Binary) Accept(v Visitor) interface{} {
 	return v.VisitBinary(exp)
 }
