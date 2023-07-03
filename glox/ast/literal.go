@@ -17,3 +17,7 @@ func (exp *Literal) Type() ExpType {
 func NewLiteralExpression(val any) *Literal {
 	return &Literal{val}
 }
+
+func (exp *Literal) Accept(v Visitor) any {
+	return v.VisitLiteral(exp)
+}

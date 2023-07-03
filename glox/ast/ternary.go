@@ -38,3 +38,7 @@ func NewTernaryConditional(condition Expression, leftOperator token.Token, posit
 		False:         negative,
 	}
 }
+
+func (exp *Ternary) Accept(v Visitor) any {
+	return v.VisitTernary(exp)
+}

@@ -23,3 +23,7 @@ func (exp *Grouping) Type() ExpType {
 func NewGroupingExp(exp Expression) *Grouping {
 	return &Grouping{exp}
 }
+
+func (exp *Grouping) Accept(v Visitor) any {
+	return v.VisitGrouping(exp)
+}

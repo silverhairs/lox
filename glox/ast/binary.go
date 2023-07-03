@@ -28,3 +28,7 @@ func NewBinaryExpression(left Expression, operator token.Token, right Expression
 func (exp *Binary) Type() ExpType {
 	return BINARY_EXP
 }
+
+func (exp *Binary) Accept(v Visitor) any {
+	return v.VisitBinary(exp)
+}

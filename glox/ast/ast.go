@@ -14,9 +14,18 @@ const (
 	TERNARY_EXP ExpType = "ternary"
 )
 
+type Visitor interface {
+	VisitBinary(exp *Binary) any
+	VisitUnary(exp *Unary) any
+	VisitGrouping(exp *Grouping) any
+	VisitLiteral(exp *Literal) any
+	VisitTernary(exp *Ternary) any
+}
+
 type Expression interface {
 	String() string
 	Type() ExpType
+	Accept(Visitor) any
 }
 
 func parenthesize(name ExpType, value string) string {
