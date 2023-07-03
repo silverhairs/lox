@@ -27,6 +27,6 @@ func NewUnaryExpression(operator token.Token, right Expression) *Unary {
 	return &Unary{operator, right}
 }
 
-func (exp *Unary) Accept(v Visitor) interface{} {
+func (exp *Unary) Accept(v Visitor) any {
 	return v.VisitUnary(exp)
 }

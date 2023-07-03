@@ -58,12 +58,12 @@ const (
 
 type Token struct {
 	Type    TokenType
-	Literal interface{}
+	Literal any
 	Lexeme  string
 	Line    int
 }
 
-// func New(Type TokenType, Lexeme string, Literal interface{}, Line int) *Token {
+// func New(Type TokenType, Lexeme string, Literal any, Line int) *Token {
 // 	return &Token{
 // 		Literal: Literal,
 // 		Type:    Type,

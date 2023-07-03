@@ -3,7 +3,7 @@ package ast
 import "fmt"
 
 type Literal struct {
-	Value interface{}
+	Value any
 }
 
 func (exp *Literal) String() string {
@@ -14,10 +14,10 @@ func (exp *Literal) Type() ExpType {
 	return LITERAL_EXP
 }
 
-func NewLiteralExpression(val interface{}) *Literal {
+func NewLiteralExpression(val any) *Literal {
 	return &Literal{val}
 }
 
-func (exp *Literal) Accept(v Visitor) interface{} {
+func (exp *Literal) Accept(v Visitor) any {
 	return v.VisitLiteral(exp)
 }

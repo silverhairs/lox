@@ -39,6 +39,6 @@ func NewTernaryConditional(condition Expression, leftOperator token.Token, posit
 	}
 }
 
-func (exp *Ternary) Accept(v Visitor) interface{} {
+func (exp *Ternary) Accept(v Visitor) any {
 	return v.VisitTernary(exp)
 }

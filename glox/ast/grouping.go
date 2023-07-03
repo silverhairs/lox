@@ -24,6 +24,6 @@ func NewGroupingExp(exp Expression) *Grouping {
 	return &Grouping{exp}
 }
 
-func (exp *Grouping) Accept(v Visitor) interface{} {
+func (exp *Grouping) Accept(v Visitor) any {
 	return v.VisitGrouping(exp)
 }
