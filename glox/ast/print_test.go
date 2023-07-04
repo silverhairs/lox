@@ -6,8 +6,6 @@ import (
 )
 
 func TestPrint(t *testing.T) {
-	// Generates a bunch of fixture expressions that can be tested
-	// against the pretty printer's `Print` method.
 
 	input := []Expression{
 		&Binary{
