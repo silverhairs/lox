@@ -3,8 +3,8 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"glox/ast"
 	"glox/errors"
+	"glox/interpreter"
 	"glox/lexer"
 	"glox/parser"
 	"io"
@@ -54,7 +54,8 @@ func run(src string) {
 	prsr := parser.New(tokens)
 	exp := prsr.Parse()
 
-	printer := ast.NewPrinter()
-	fmt.Println(printer.Print(exp))
+	glox := interpreter.New()
+
+	fmt.Println(glox.Eval(exp))
 
 }
