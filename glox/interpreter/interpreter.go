@@ -86,7 +86,7 @@ func (i *Interpreter) VisitTernary(exp *ast.Ternary) any {
 	then := i.evaluate(exp.Then)
 	orElse := i.evaluate(exp.OrElse)
 
-	passes := condition.(bool)
+	passes := isTruthy(condition)
 	if passes {
 		return then
 	} else {
