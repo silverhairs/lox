@@ -25,11 +25,11 @@ func TestPrint(t *testing.T) {
 			},
 		},
 		&Ternary{
-			Condition:     &Literal{Value: true},
-			LeftOperator:  token.Token{Type: token.QUESTION_MARK, Lexeme: "?", Line: 1},
-			True:          &Literal{Value: 1},
-			RightOperator: token.Token{Type: token.COLON, Lexeme: ":", Line: 1},
-			False:         &Literal{Value: 2},
+			Condition:      &Literal{Value: true},
+			ThenOperator:   token.Token{Type: token.QUESTION_MARK, Lexeme: "?", Line: 1},
+			Then:           &Literal{Value: 1},
+			OrElseOperator: token.Token{Type: token.COLON, Lexeme: ":", Line: 1},
+			OrElse:         &Literal{Value: 2},
 		},
 	}
 	printer := NewPrinter()

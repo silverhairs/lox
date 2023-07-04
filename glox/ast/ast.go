@@ -131,21 +131,21 @@ func (exp *Grouping) Accept(v Visitor) any {
 }
 
 type Ternary struct {
-	Condition     Expression  // The expression being evaluated
-	LeftOperator  token.Token // Typicaly a `?`
-	True          Expression  // Expression executed when the condition is true
-	RightOperator token.Token // Typically `:`
-	False         Expression  // Expression executed when condition is false
+	Condition      Expression  // The conditional expression being evaluated
+	ThenOperator   token.Token // Typicaly a `?`
+	Then           Expression  // Expression executed when the condition is true
+	OrElseOperator token.Token // Typically `:`
+	OrElse         Expression  // Expression executed when condition is false
 }
 
 func (exp *Ternary) String() string {
 	var out bytes.Buffer
 
 	out.WriteString(exp.Condition.String())
-	out.WriteString(" " + exp.LeftOperator.Lexeme + " ")
-	out.WriteString("(" + exp.True.String() + ")")
-	out.WriteString(" " + exp.RightOperator.Lexeme + " ")
-	out.WriteString("(" + exp.False.String() + ")")
+	out.WriteString(" " + exp.ThenOperator.Lexeme + " ")
+	out.WriteString("(" + exp.Then.String() + ")")
+	out.WriteString(" " + exp.OrElseOperator.Lexeme + " ")
+	out.WriteString("(" + exp.OrElse.String() + ")")
 
 	return parenthesize(exp.Type(), out.String())
 }
@@ -154,13 +154,13 @@ func (exp *Ternary) Type() ExpType {
 	return TERNARY_EXP
 }
 
-func NewTernaryConditional(condition Expression, leftOperator token.Token, positive Expression, rightOperator token.Token, negative Expression) *Ternary {
+func NewTernaryConditional(condition Expression, thenOp token.Token, then Expression, orElseOp token.Token, orElse Expression) *Ternary {
 	return &Ternary{
-		Condition:     condition,
-		LeftOperator:  leftOperator,
-		RightOperator: rightOperator,
-		True:          positive,
-		False:         negative,
+		Condition:      condition,
+		ThenOperator:   thenOp,
+		OrElseOperator: orElseOp,
+		Then:           then,
+		OrElse:         orElse,
 	}
 }
 

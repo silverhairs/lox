@@ -20,12 +20,12 @@ func TestParseTernary(t *testing.T) {
 		t.Fatalf("result is not *ast.Ternary. got=%T", result)
 	}
 
-	if exp.LeftOperator.Type != token.QUESTION_MARK {
-		t.Fatalf("exp.LeftOperator has the wrong token. expected='token.QUESTION_MARK' but got=%q", exp.LeftOperator.Type)
+	if exp.ThenOperator.Type != token.QUESTION_MARK {
+		t.Fatalf("exp.LeftOperator has the wrong token. expected='token.QUESTION_MARK' but got=%q", exp.ThenOperator.Type)
 	}
 
-	if exp.RightOperator.Type != token.COLON {
-		t.Fatalf("exp.RightOperator has the wrong token. expected='token.COLON' but got=%q", exp.LeftOperator.Type)
+	if exp.OrElseOperator.Type != token.COLON {
+		t.Fatalf("exp.RightOperator has the wrong token. expected='token.COLON' but got=%q", exp.ThenOperator.Type)
 	}
 
 	condition, isBinary := exp.Condition.(*ast.Binary)
@@ -39,8 +39,8 @@ func TestParseTernary(t *testing.T) {
 	}
 
 	testLiteral(condition.Right, "1", t)
-	testLiteral(exp.True, "abc", t)
-	testLiteral(exp.False, "123", t)
+	testLiteral(exp.Then, "abc", t)
+	testLiteral(exp.OrElse, "123", t)
 
 }
 
