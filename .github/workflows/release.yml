@@ -1,0 +1,33 @@
+name: Glox Release
+on:
+  push:
+    branches:
+      - releases
+defaults:
+  run:
+    working-directory: ./glox
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '^1.20.0'
+          check-latest: true
+      - run: go version
+
+      - name: Build Binary
+        run: go build -o glox
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+          draft: false
+          prerelease: false
