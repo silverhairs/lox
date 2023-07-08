@@ -6,18 +6,6 @@ import (
 	"glox/token"
 )
 
-/*
- Precedence
- EXPRESSION      -> ternary
- TERNARY         Operators:: [?:]l Associates: `R`
- EQUALITY        Operators: [==, !=] ;  Associates: `L`
- COMPARISON      Operators: [>, >= <=, <] ; Associates: `L`
- TERM            Operators: [+, -] ; Associates: `L`
- FACTOR          Opetators: [/, *] ; Associates : `L`
- UNARY           Operators: [!, -] ; Associates: `R`
- PRIMARY         Matches literals and grouping expressions
-*/
-
 type Parser struct {
 	tokens   []token.Token
 	errors   []string
