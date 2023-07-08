@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - releases
+  workflow_dispatch:
+
 defaults:
   run:
     working-directory: ./glox
@@ -13,7 +15,9 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu, macos, windows]
-        arch: [amd64, arm64]
+        arch:
+          - amd64
+          - arm64 (macos only)
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -22,25 +26,21 @@ jobs:
           check-latest: true
       - run: go version
 
-      - name: Build Binary ofr ${{ matrix.os }} ${{ matrix.arch }}
+      - name: Build Binary for ${{ matrix.os }} / ${{ matrix.arch }}
         run: |
           case ${{ matrix.os }} in
-            ubuntu)  GOOS=linux ;;
-            macos)  GOOS=darwin ;;
-            windows) GOOS=windows ;;
+              ubuntu)   GOOS=linux   GOARCH=${{ matrix.arch }} ;;
+              macos)    GOOS=darwin  GOARCH=${{ matrix.arch }} ;;
+              windows)  GOOS=windows GOARCH=${{ matrix.arch }} ;;
           esac
-          case ${{ matrix.arch }} in
-                amd64)  GOARCH=amd64 ;;
-                arm64)  GOARCH=arm64 ;;
-          esac
-            go build -v -o glox-${{ matrix.os }}-${{ matrix.arch }}
+          go build -v -o glox-${{ matrix.os }}-${{ matrix.arch }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.run_number }}
+          tag_name: ${{ github.run_number }}-${{ matrix.os }}-${{ matrix.arch }}
           release_name: Release ${{ github.run_number }}
           draft: false
           prerelease: false
