@@ -51,6 +51,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./glox/glox
+          asset_path: ./glox
           asset_name: glox-${{ matrix.os }}-${{ matrix.arch }}
           asset_content_type: application/octet-stream
