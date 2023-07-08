@@ -10,6 +10,10 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu, macos, windows]
+        arch: [amd64, arm64]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -18,9 +22,18 @@ jobs:
           check-latest: true
       - run: go version
 
-      - name: Build Binary
-        run: go build -o glox
-
+      - name: Build Binary ofr ${{ matrix.os }} ${{ matrix.arch }}
+        run: |
+          case ${{ matrix.os }} in
+            ubuntu)  GOOS=linux ;;
+            macos)  GOOS=darwin ;;
+            windows) GOOS=windows ;;
+          esac
+          case ${{ matrix.arch }} in
+                amd64)  GOARCH=amd64 ;;
+                arm64)  GOARCH=arm64 ;;
+          esac
+            go build -v -o glox-${{ matrix.os }}-${{ matrix.arch }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -31,3 +44,14 @@ jobs:
           release_name: Release ${{ github.run_number }}
           draft: false
           prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./glox/glox
+          asset_name: glox-${{ matrix.os }}-${{ matrix.arch }}
+          asset_content_type: application/octet-stream
