@@ -10,14 +10,12 @@ defaults:
     working-directory: ./glox
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build_macos_release:
+    runs-on: macos-13
     strategy:
       matrix:
-        os: [ubuntu, macos-13]
-        arch:
-          - amd64
-          - arm64
+        os: [macos-13]
+        arch: [amd64, arm64]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -28,12 +26,51 @@ jobs:
 
       - name: Build Binary for ${{ matrix.os }} / ${{ matrix.arch }}
         run: |
-          case ${{ matrix.os }} in
-              ubuntu)   GOOS=linux   GOARCH=${{ matrix.arch }} ;;
-              macos-13) GOOS=darwin GOARCH=${{ matrix.arch }} ;;
+          case ${{ matrix.arch }} in
+              amd64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
+              arm64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
           esac
           go build -v -o glox-${{ matrix.os }}-${{ matrix.arch }}
-      - name: Create Release
+      - name: Create MacOS Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.run_number }}-${{ matrix.os }}-${{ matrix.arch }}
+          release_name: Release ${{ github.run_number }}-${{ matrix.os }}-${{ matrix.arch }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./glox/glox-${{ matrix.os }}-${{ matrix.arch }}
+          asset_name: glox-${{ matrix.os }}-${{ matrix.arch }}
+          asset_content_type: application/octet-stream
+
+  build_linux_release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        arch: [amd64]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '^1.20.0'
+          check-latest: true
+      - run: go version
+
+      - name: Build Binary for ${{ matrix.os }} / ${{ matrix.arch }}
+        run: |
+          go build -v -o glox-linux-${{ matrix.arch }}
+      - name: Create Linux Release
         id: create_release
         uses: actions/create-release@v1
         env:
