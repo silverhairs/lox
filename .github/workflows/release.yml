@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu, macos]
         arch:
           - amd64
-          - arm64 (macos only)
+          - arm64
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
