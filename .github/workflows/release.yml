@@ -112,7 +112,7 @@ jobs:
           path: ./glox/glox-linux-amd64
 
       - name: List artifacts
-        run: ls -la ./glox
+        run: pwd && ls -la
 
       - name: Create Release
         id: create_release
