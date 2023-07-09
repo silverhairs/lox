@@ -97,13 +97,13 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: glox-macos-arm64
-          path: ./glox/glox-linux-arm64
+          path: ./glox/glox-macos-arm64
 
       - name: Download macos/amd64 artifact
         uses: actions/download-artifact@v2
         with:
           name: glox-macos-amd64
-          path: ./glox/glox-linux-amd64
+          path: ./glox/glox-macos-amd64
 
       - name: Download linux artifacts
         uses: actions/download-artifact@v2
