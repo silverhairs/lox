@@ -50,7 +50,7 @@ jobs:
               arm64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
           esac
           go build -v -o glox-macos-${{ matrix.arch }}
-      - name: Upload macos artifacts
+      - name: Upload artifacts for ${{ matrix.os }} / ${{ matrix.arch }}
         uses: actions/upload-artifact@v2
         with:
           name: glox-macos-${{ matrix.arch }}
@@ -75,7 +75,7 @@ jobs:
         run: |
           go build -v -o glox-linux-${{ matrix.arch }}
 
-      - name: Upload linux artifacts
+      - name: Upload artifact for ${{ matrix.os }} / ${{ matrix.arch }}
         uses: actions/upload-artifact@v2
         with:
           name: glox-linux-${{ matrix.arch }}
