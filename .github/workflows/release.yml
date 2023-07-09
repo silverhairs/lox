@@ -100,6 +100,7 @@ jobs:
           prerelease: false
 
       - name: Download macos/arm64 artifact
+        id: download_macos_arm64
         uses: actions/download-artifact@v2
         with:
           name: glox-macos-arm64
@@ -111,11 +112,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./glox/glox-macos-arm64
+          asset_path: ${{ steps.download_macos_arm64.outputs.download_path }}
           asset_name: glox-macos-arm64
           asset_content_type: application/octet-stream
 
       - name: Download macos/amd64 artifact
+        id: download_macos_amd64
         uses: actions/download-artifact@v2
         with:
           name: glox-macos-amd64
@@ -127,11 +129,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./glox/glox-macos-amd64
+          asset_path: ${{ steps.download_macos_amd64.outputs.download_path }}
           asset_name: glox-macos-amd64
           asset_content_type: application/octet-stream
 
       - name: Download linux artifacts
+        id: download_linux_artifacts
         uses: actions/download-artifact@v2
         with:
           name: glox-linux-amd64
@@ -143,6 +146,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./glox/glox-linux-amd64
+          asset_path: ${{ steps.download_linux_artifacts.outputs.download_path }}
           asset_name: glox-linux-amd64
           asset_content_type: application/octet-stream
