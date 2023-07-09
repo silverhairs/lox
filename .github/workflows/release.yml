@@ -30,32 +30,32 @@ jobs:
       - name: Test
         run: go test ./... -v
 
-  #   build_macos_artifacts:
-  #     runs-on: macos-13
-  #     needs: [analyze_and_test]
-  #     strategy:
-  #       matrix:
-  #         os: [macos-13]
-  #         arch: [amd64, arm64]
-  #     steps:
-  #       - uses: actions/checkout@v3
-  #       - uses: actions/setup-go@v3
-  #         with:
-  #           go-version: '^1.20.0'
-  #           check-latest: true
-  #       - run: go version
-  #       - name: Build Binary for ${{ matrix.os }} / ${{ matrix.arch }}
-  #         run: |
-  #           case ${{ matrix.arch }} in
-  #               amd64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
-  #               arm64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
-  #           esac
-  #           go build -v -o glox-macos-${{ matrix.arch }}
-  #       - name: Upload macos artifacts
-  #         uses: actions/upload-artifact@v2
-  #         with:
-  #           name: glox-macos-${{ matrix.arch }}
-  #           path: ./glox/glox-macos-${{ matrix.arch }}
+  build_macos_artifacts:
+    runs-on: macos-13
+    needs: [analyze_and_test]
+    strategy:
+      matrix:
+        os: [macos-13]
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '^1.20.0'
+          check-latest: true
+      - run: go version
+      - name: Build Binary for ${{ matrix.os }} / ${{ matrix.arch }}
+        run: |
+          case ${{ matrix.arch }} in
+              amd64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
+              arm64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
+          esac
+          go build -v -o glox-macos-${{ matrix.arch }}
+      - name: Upload macos artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: glox-macos-${{ matrix.arch }}
+          path: ./glox/glox-macos-${{ matrix.arch }}
 
   build_linux_artifacts:
     runs-on: ubuntu-latest
@@ -84,7 +84,7 @@ jobs:
 
   publish_release:
     runs-on: ubuntu-latest
-    needs: [build_linux_artifacts]
+    needs: [build_macos_artifacts, build_linux_artifacts]
     steps:
       - uses: actions/checkout@v3
 
