@@ -111,9 +111,6 @@ jobs:
           name: glox-linux-amd64
           path: ./glox/glox-linux-amd64
 
-      - name: List artifacts
-        run: pwd && ls -la
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -131,7 +128,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./glox/glox-linux-amd64
+          asset_path: ./glox-linux-amd64
           asset_name: glox-linux-amd64
           asset_content_type: application/octet-stream
 
@@ -141,7 +138,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./glox/glox-macos-amd64
+          asset_path: ./glox-macos-amd64
           asset_name: glox-macos-amd64
           asset_content_type: application/octet-stream
 
@@ -151,6 +148,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./glox/glox-macos-arm64
+          asset_path: ./glox-macos-arm64
           asset_name: glox-macos-arm64
           asset_content_type: application/octet-stream
