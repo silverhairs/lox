@@ -15,7 +15,7 @@ defaults:
     working-directory: ./glox/
 
 jobs:
-  build:
+  analyze_and_test:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,6 +34,3 @@ jobs:
 
       - name: Test
         run: go test ./... -v
-
-      - name: Build
-        run: go build -o glox
