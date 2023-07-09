@@ -111,6 +111,9 @@ jobs:
           name: glox-linux-amd64
           path: ./glox/glox-linux-amd64
 
+      - name: List artifacts
+        run: ls -la ./glox
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
