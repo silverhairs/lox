@@ -60,7 +60,7 @@ jobs:
         with:
           tag_name: ${{ github.run_number }}-${{ matrix.os }}-${{ matrix.arch }}
           release_name: Release ${{ github.run_number }}-${{ matrix.os }}-${{ matrix.arch }}
-          draft: false
+          draft: true
           prerelease: false
 
       - name: Upload Release Asset
@@ -100,7 +100,7 @@ jobs:
         with:
           tag_name: ${{ github.run_number }}-linux-${{ matrix.arch }}
           release_name: Release ${{ github.run_number }}-linux-${{ matrix.arch }}
-          draft: false
+          draft: true
           prerelease: false
 
       - name: Upload Release Asset
