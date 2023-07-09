@@ -30,32 +30,32 @@ jobs:
       - name: Test
         run: go test ./... -v
 
-  build_macos_artifacts:
-    runs-on: macos-13
-    needs: [analyze_and_test]
-    strategy:
-      matrix:
-        os: [macos-13]
-        arch: [amd64, arm64]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: '^1.20.0'
-          check-latest: true
-      - run: go version
-      - name: Build Binary for ${{ matrix.os }} / ${{ matrix.arch }}
-        run: |
-          case ${{ matrix.arch }} in
-              amd64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
-              arm64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
-          esac
-          go build -v -o glox-macos-${{ matrix.arch }}
-      - name: Upload macos artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: glox-macos-${{ matrix.arch }}
-          path: ./glox/glox-macos-${{ matrix.arch }}
+  #   build_macos_artifacts:
+  #     runs-on: macos-13
+  #     needs: [analyze_and_test]
+  #     strategy:
+  #       matrix:
+  #         os: [macos-13]
+  #         arch: [amd64, arm64]
+  #     steps:
+  #       - uses: actions/checkout@v3
+  #       - uses: actions/setup-go@v3
+  #         with:
+  #           go-version: '^1.20.0'
+  #           check-latest: true
+  #       - run: go version
+  #       - name: Build Binary for ${{ matrix.os }} / ${{ matrix.arch }}
+  #         run: |
+  #           case ${{ matrix.arch }} in
+  #               amd64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
+  #               arm64)   GOOS=darwin   GOARCH=${{ matrix.arch }} ;;
+  #           esac
+  #           go build -v -o glox-macos-${{ matrix.arch }}
+  #       - name: Upload macos artifacts
+  #         uses: actions/upload-artifact@v2
+  #         with:
+  #           name: glox-macos-${{ matrix.arch }}
+  #           path: ./glox/glox-macos-${{ matrix.arch }}
 
   build_linux_artifacts:
     runs-on: ubuntu-latest
@@ -76,7 +76,7 @@ jobs:
         run: |
           go build -v -o glox-linux-${{ matrix.arch }}
 
-      - name: Upload macos artifacts
+      - name: Upload linux artifacts
         uses: actions/upload-artifact@v2
         with:
           name: glox-linux-${{ matrix.arch }}
@@ -84,32 +84,9 @@ jobs:
 
   publish_release:
     runs-on: ubuntu-latest
-    needs: [build_macos_artifacts, build_linux_artifacts]
+    needs: [build_linux_artifacts]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: '^1.20.0'
-          check-latest: true
-      - run: go version
-
-      - name: Download macos/arm64 artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: glox-macos-arm64
-          path: ./glox/glox-macos-arm64
-
-      - name: Download macos/amd64 artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: glox-macos-amd64
-          path: ./glox/glox-macos-amd64
-
-      - name: Download linux artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: glox-linux-amd64
-          path: ./glox/glox-linux-amd64
 
       - name: Create Release
         id: create_release
@@ -122,15 +99,27 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload linux/amd64 release asset
+      - name: Download macos/arm64 artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: glox-macos-arm64
+          path: ./glox/glox-macos-arm64
+
+      - name: Upload macos/arm64 release asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./glox-linux-amd64
-          asset_name: glox-linux-amd64
+          asset_path: ./glox-macos-arm64
+          asset_name: glox-macos-arm64
           asset_content_type: application/octet-stream
+
+      - name: Download macos/amd64 artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: glox-macos-amd64
+          path: ./glox/glox-macos-amd64
 
       - name: Upload macos/amd64 release asset
         uses: actions/upload-release-asset@v1
@@ -142,12 +131,18 @@ jobs:
           asset_name: glox-macos-amd64
           asset_content_type: application/octet-stream
 
-      - name: Upload macos/arm64 release asset
+      - name: Download linux artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: glox-linux-amd64
+          path: ./glox/glox-linux-amd64
+
+      - name: Upload linux/amd64 release asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./glox-macos-arm64
-          asset_name: glox-macos-arm64
+          asset_path: ./glox-linux-amd64
+          asset_name: glox-linux-amd64
           asset_content_type: application/octet-stream
