@@ -12,7 +12,6 @@ defaults:
 jobs:
   analyze_and_test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -99,12 +98,15 @@ jobs:
           draft: true
           prerelease: false
 
+      - name: Create artifacts directory
+        run: mkdir -p ../build
+
       - name: Download macos/arm64 artifact
         id: download_macos_arm64
         uses: actions/download-artifact@v2
         with:
           name: glox-macos-arm64
-          path: ./glox/glox-macos-arm64
+          path: ../build/glox-macos-arm64
 
       - name: Upload macos/arm64 release asset
         uses: actions/upload-release-asset@v1
@@ -121,7 +123,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: glox-macos-amd64
-          path: ./glox/glox-macos-amd64
+          path: ../build/glox-macos-amd64
 
       - name: Upload macos/amd64 release asset
         uses: actions/upload-release-asset@v1
@@ -138,7 +140,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: glox-linux-amd64
-          path: ./glox/glox-linux-amd64
+          path: ../build/glox-linux-amd64
 
       - name: Upload linux/amd64 release asset
         uses: actions/upload-release-asset@v1
