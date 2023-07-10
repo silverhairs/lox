@@ -5,14 +5,16 @@
 
 ## Quick Start
 ### Install latest release binary (only available on macos and linux):
-Run the script below in your terminal to install `glox` in your system inside `/usr/local/bin/glox`. After installing the binary, you can run the command `glox` in your terminal and it should start the REPL.
+The script below will download the `glox` binary in your system and give it executable permission. After this script, you can run `./glox` and it should start the REPL.
+
+> Make sure you have [curl](https://curl.se/) installed in your system before running the script
 ```sh
 curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releases/latest \
 | grep "browser_download_url.*glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m)" \
 | cut -d '"' -f 4 \
 | wget -qi - \
 && chmod +x glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m) \
-&& sudo mv glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m) /usr/local/bin/glox
+&& sudo mv glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m) $PWD/glox
 ```
 
 ### Run code
