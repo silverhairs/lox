@@ -4,7 +4,7 @@
 ---
 
 ## Quick Start
-### Install latest release binary (only available on macos and linux):
+### From Binary (only available on macos and linux):
 The script below will download the `glox` binary in your system and give it executable permission. After this script, you can run `./glox` and it should start the REPL.
 
 > Make sure you have [curl](https://curl.se/) installed in your system before running the script
@@ -17,7 +17,7 @@ curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releas
 && sudo mv glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m) $PWD/glox
 ```
 
-### Run code
+### From Source
 Cloning the repository and runing `main.go` should start the REPL. `main.go` is located in `crafting-interpreters/glox`. You need to have Golang installed in your system for this option.
 
 ```sh
