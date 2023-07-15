@@ -2,7 +2,7 @@ package lexer
 
 import (
 	"fmt"
-	"glox/errors"
+	"glox/exception"
 	"glox/token"
 	"strconv"
 )
@@ -112,7 +112,7 @@ func (s *Lexer) lex() {
 		} else if isAlpha(char) {
 			s.identifier()
 		} else {
-			errors.Short(s.line, fmt.Sprintf("Unexpected character %q", char))
+			exception.Short(s.line, fmt.Sprintf("Unexpected character %q", char))
 		}
 	}
 }
@@ -179,7 +179,7 @@ func (s *Lexer) string() {
 	}
 
 	if s.isAtEnd() {
-		errors.Short(s.line, "Please add a double-quote at the end of the string.")
+		exception.Short(s.line, "Please add a double-quote at the end of the string.")
 		return
 	}
 
@@ -204,7 +204,7 @@ func (s *Lexer) number() {
 	literal := s.Source[s.start:s.current]
 	value, err := strconv.ParseFloat(literal, 64)
 	if err != nil {
-		errors.Short(s.line, fmt.Sprintf("%q is an invalid %q", literal, token.NUMBER))
+		exception.Short(s.line, fmt.Sprintf("%q is an invalid %q", literal, token.NUMBER))
 		return
 	}
 	s.addToken(token.NUMBER, value)
@@ -258,7 +258,7 @@ func (s *Lexer) slash() {
 			literal := s.Source[s.start+2 : s.current-2]
 			s.addToken(token.COMMENT_B, literal)
 		} else {
-			errors.Short(s.line, "opened multi-line comment has not been closed.")
+			exception.Short(s.line, "opened multi-line comment has not been closed.")
 		}
 
 	} else {

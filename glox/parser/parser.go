@@ -2,7 +2,7 @@ package parser
 
 import (
 	"glox/ast"
-	"glox/errors"
+	"glox/exception"
 	"glox/token"
 )
 
@@ -178,10 +178,10 @@ func (p *Parser) consume(tokType token.TokenType, message string) token.Token {
 
 func captureError(tok token.Token, msg string) error {
 	if tok.Type == token.EOF {
-		return errors.Generic(tok.Line, " at end", msg)
+		return exception.Generic(tok.Line, " at end", msg)
 	}
 
-	return errors.Generic(tok.Line, "'"+tok.Lexeme+"'", msg)
+	return exception.Generic(tok.Line, "'"+tok.Lexeme+"'", msg)
 }
 
 // Discards tokens that might case cascaded errors
