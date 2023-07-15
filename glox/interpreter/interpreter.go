@@ -71,10 +71,9 @@ func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
 		return leftNum - rightNum
 	case token.PLUS:
-		var err error
 		if leftNum, isLFloat := left.(float64); isLFloat {
 			rightNum, isRFloat := right.(float64)
-			if isRFloat {
+			if isRFloat {inter
 				return leftNum + rightNum
 			}
 		} else if leftVal, isLeftStr := left.(string); isLeftStr {
@@ -82,7 +81,8 @@ func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 				return leftVal + rightVal
 			}
 		}
-		err = exception.Runtime(exp.Operator, "Both operands must be eihter numbers or strings.")
+
+		err := exception.Runtime(exp.Operator, "Both operands must be eihter numbers or strings.")
 		panic(err)
 
 	case token.SLASH:
