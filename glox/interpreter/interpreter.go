@@ -6,10 +6,12 @@ import (
 	"math"
 )
 
-type Interpreter struct{}
+type Interpreter struct {
+	errors []string
+}
 
 func New() *Interpreter {
-	return &Interpreter{}
+	return &Interpreter{errors: []string{}}
 }
 
 func (i *Interpreter) Eval(exp ast.Expression) any {
@@ -31,7 +33,11 @@ func (i *Interpreter) VisitUnary(exp *ast.Unary) any {
 	case token.BANG:
 		return !isTruthy(right)
 	case token.MINUS:
-		return -right.(float64)
+		num, isNum := right.(float64)
+		if isNum {
+			return -num
+		}
+		i.errors = append(i.errors, )
 	}
 
 	return nil

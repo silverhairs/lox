@@ -178,10 +178,10 @@ func (p *Parser) consume(tokType token.TokenType, message string) token.Token {
 
 func captureError(tok token.Token, msg string) error {
 	if tok.Type == token.EOF {
-		return errors.New(tok.Line, " at end", msg)
+		return errors.Generic(tok.Line, " at end", msg)
 	}
 
-	return errors.New(tok.Line, "'"+tok.Lexeme+"'", msg)
+	return errors.Generic(tok.Line, "'"+tok.Lexeme+"'", msg)
 }
 
 // Discards tokens that might case cascaded errors

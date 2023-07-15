@@ -16,7 +16,7 @@ const PROMPT = ">> "
 func RunFile(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
-		return errors.New(0, path, err.Error())
+		return errors.Generic(0, path, err.Error())
 	}
 	defer file.Close()
 
