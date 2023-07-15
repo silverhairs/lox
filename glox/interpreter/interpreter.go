@@ -73,7 +73,7 @@ func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 	case token.PLUS:
 		if leftNum, isLFloat := left.(float64); isLFloat {
 			rightNum, isRFloat := right.(float64)
-			if isRFloat {inter
+			if isRFloat {
 				return leftNum + rightNum
 			}
 		} else if leftVal, isLeftStr := left.(string); isLeftStr {
