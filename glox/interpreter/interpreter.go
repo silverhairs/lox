@@ -1,17 +1,17 @@
 package interpreter
 
 import (
+	"fmt"
 	"glox/ast"
+	"glox/exception"
 	"glox/token"
 	"math"
 )
 
-type Interpreter struct {
-	errors []string
-}
+type Interpreter struct{}
 
 func New() *Interpreter {
-	return &Interpreter{errors: []string{}}
+	return &Interpreter{}
 }
 
 func (i *Interpreter) Eval(exp ast.Expression) any {
@@ -33,11 +33,9 @@ func (i *Interpreter) VisitUnary(exp *ast.Unary) any {
 	case token.BANG:
 		return !isTruthy(right)
 	case token.MINUS:
-		num, isNum := right.(float64)
-		if isNum {
-			return -num
-		}
-		i.errors = append(i.errors, )
+		num := panicWhenOperandIsNotNumber(exp.Operator, right)
+		return -num
+
 	}
 
 	return nil
@@ -49,39 +47,52 @@ func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 
 	switch exp.Operator.Type {
 	case token.GREATER:
-		return left.(float64) > right.(float64)
+		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
+		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
+		return leftNum > rightNum
 	case token.GREATER_EQ:
-		return left.(float64) >= right.(float64)
+		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
+		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
+		return leftNum >= rightNum
 	case token.LESS:
-		return left.(float64) < right.(float64)
+		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
+		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
+		return leftNum < rightNum
 	case token.LESS_EQ:
-		return left.(float64) <= right.(float64)
+		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
+		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
+		return leftNum <= rightNum
 	case token.EQ_EQ:
 		return isEqual(left, right)
 	case token.BANG_EQ:
 		return !isEqual(left, right)
 	case token.MINUS:
-		return left.(float64) - right.(float64)
+		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
+		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
+		return leftNum - rightNum
 	case token.PLUS:
+		var err error
 		if leftNum, isLFloat := left.(float64); isLFloat {
 			rightNum, isRFloat := right.(float64)
 			if isRFloat {
 				return leftNum + rightNum
 			}
-		}
-
-		// String concatenation
-		if leftStr, isLStr := left.(string); isLStr {
-			rightStr, isRStr := right.(string)
-			if isRStr {
-				return leftStr + rightStr
+		} else if leftVal, isLeftStr := left.(string); isLeftStr {
+			if rightVal, isRightStr := right.(string); isRightStr {
+				return leftVal + rightVal
 			}
 		}
+		err = exception.Runtime(exp.Operator, "Both operands must be eihter numbers or strings.")
+		panic(err)
 
 	case token.SLASH:
-		return left.(float64) / right.(float64)
+		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
+		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
+		return leftNum / rightNum
 	case token.ASTERISK:
-		return left.(float64) * right.(float64)
+		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
+		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
+		return leftNum * rightNum
 	}
 
 	return nil
@@ -129,4 +140,25 @@ func isEqual(l any, r any) bool {
 	}
 
 	return l == r
+}
+
+func checkOperand(operator token.Token, operand any) (*float64, error) {
+	num, isNum := operand.(float64)
+	if !isNum {
+		return nil, exception.Runtime(
+			operator,
+			fmt.Sprintf("Operator %q only accepts number operands.", operator.Lexeme),
+		)
+	}
+
+	return &num, nil
+}
+
+func panicWhenOperandIsNotNumber(operator token.Token, operand any) float64 {
+	num, err := checkOperand(operator, operand)
+	if err != nil {
+		panic(err)
+	} else {
+		return *num
+	}
 }
