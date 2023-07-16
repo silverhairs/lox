@@ -14,7 +14,7 @@ func New() *Interpreter {
 	return &Interpreter{}
 }
 
-func (i *Interpreter) Eval(exp ast.Expression) any {
+func (i *Interpreter) Interpret(exp ast.Expression) any {
 	return exp.Accept(i)
 }
 

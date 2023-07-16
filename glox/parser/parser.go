@@ -8,7 +8,7 @@ import (
 
 type Parser struct {
 	tokens   []token.Token
-	errors   []string
+	errors   []error
 	position int
 }
 
@@ -16,12 +16,8 @@ func New(tokens []token.Token) *Parser {
 	return &Parser{tokens: tokens, position: 0}
 }
 
-func (p *Parser) Errors() []string {
-	return p.errors
-}
-
-func (p *Parser) Parse() ast.Expression {
-	return p.expression()
+func (p *Parser) Parse() (ast.Expression, []error) {
+	return p.expression(), p.errors
 }
 
 func (p *Parser) expression() ast.Expression {
@@ -155,12 +151,12 @@ func (p *Parser) primary() ast.Expression {
 	if p.match(token.L_PAREN) {
 		exp := p.expression()
 
-		p.consume(token.R_PAREN, "expect ')' after expression")
+		p.consume(token.R_PAREN, "Expect ')' after expression")
 		return ast.NewGroupingExp(exp)
 
 	}
 
-	panic(captureError(p.peek(), "expect expression"))
+	panic(captureError(p.peek(), "Expected expression"))
 
 }
 
