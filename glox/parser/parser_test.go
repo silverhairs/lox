@@ -4,7 +4,6 @@ import (
 	"glox/ast"
 	"glox/lexer"
 	"glox/token"
-	"glox/utils"
 	"testing"
 )
 
@@ -14,10 +13,9 @@ func TestParseTernary(t *testing.T) {
 	lxr := lexer.New(code)
 	prsr := New(lxr.Tokenize())
 
-	result, errs := prsr.Parse()
-	if len(errs) > 0 {
-		messages := utils.Map[error, string](errs, func(e error) string { return e.Error() })
-		t.Fatalf("Parsing errors caught: %v", messages)
+	result, err := prsr.Parse()
+	if err != nil {
+		t.Fatalf("Parsing errors caught: %q", err.Error())
 	}
 
 	exp, isTernary := result.(*ast.Ternary)
@@ -54,10 +52,9 @@ func TestParseUnary(t *testing.T) {
 	lxr := lexer.New(code)
 	prsr := New(lxr.Tokenize())
 
-	result, errs := prsr.Parse()
-	if len(errs) > 0 {
-		messages := utils.Map[error, string](errs, func(e error) string { return e.Error() })
-		t.Fatalf("Parsing errors caught: %v", messages)
+	result, err := prsr.Parse()
+	if err != nil {
+		t.Fatalf("Parsing errors caught: %v", err.Error())
 	}
 
 	exp, isUnary := result.(*ast.Unary)
@@ -77,10 +74,9 @@ func TestParseBinary(t *testing.T) {
 	lxr := lexer.New(code)
 	prsr := New(lxr.Tokenize())
 
-	result, errs := prsr.Parse()
-	if len(errs) > 0 {
-		messages := utils.Map[error, string](errs, func(e error) string { return e.Error() })
-		t.Fatalf("Parsing errors caught: %v", messages)
+	result, err := prsr.Parse()
+	if err != nil {
+		t.Fatalf("Parsing errors caught: %v", err.Error())
 	}
 
 	exp, isBinary := result.(*ast.Binary)

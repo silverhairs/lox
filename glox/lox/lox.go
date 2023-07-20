@@ -6,7 +6,6 @@ import (
 	"glox/interpreter"
 	"glox/lexer"
 	"glox/parser"
-	"glox/utils"
 	"io"
 	"os"
 )
@@ -65,11 +64,10 @@ func (r *Lox) run(src string) {
 
 	tokens := scnr.Tokenize()
 	prsr := parser.New(tokens)
-	exp, errs := prsr.Parse()
+	exp, err := prsr.Parse()
 
-	if len(errs) > 0 {
-		messages := utils.Map[error, string](errs, func(err error) string { return fmt.Sprintf("%s\n", err.Error()) })
-		fmt.Fprintf(r.stdErr, "%v", messages)
+	if err != nil {
+		fmt.Fprintf(r.stdErr, "%v", err.Error())
 	}
 
 	glox := interpreter.New()

@@ -18,3 +18,7 @@ func Short(line int, msg string) error {
 func Runtime(token token.Token, message string) error {
 	return fmt.Errorf("RuntimeException(%q, %s)\n[line: %d]", token.Lexeme, message, token.Line)
 }
+
+func Parse(tok token.Token) error {
+	return fmt.Errorf("ParseException(%q, illegal token)\n[line: %d]", tok.Lexeme, tok.Line)
+}
