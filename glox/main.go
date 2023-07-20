@@ -2,17 +2,19 @@ package main
 
 import (
 	"fmt"
-	"glox/cmd"
+	"glox/lox"
 	"os"
 )
 
 func main() {
 	args := os.Args[1:]
+	runner := lox.NewRunner(os.Stderr, os.Stdout)
+
 	if len(args) < 1 {
-		cmd.StartREPL(os.Stdin)
+		runner.StartREPL(os.Stdin)
 
 	} else if len(args) == 1 {
-		cmd.RunFile(args[0])
+		runner.RunFile(args[0])
 
 	} else {
 		fmt.Printf("Usage: glox [script]\n")
