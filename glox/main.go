@@ -8,7 +8,7 @@ import (
 
 func main() {
 	args := os.Args[1:]
-	runner := lox.NewRunner(os.Stderr)
+	runner := lox.NewRunner(os.Stderr, os.Stdout)
 
 	if len(args) < 1 {
 		runner.StartREPL(os.Stdin)

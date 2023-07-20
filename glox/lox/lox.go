@@ -17,12 +17,13 @@ type Runner interface {
 	StartREPL(stdin io.Reader)
 }
 
-func NewRunner(stdErr io.Writer) Runner {
-	return &Lox{stdErr: stdErr}
+func NewRunner(stdErr io.Writer, stdout io.Writer) Runner {
+	return &Lox{stdErr: stdErr, stdout: stdout}
 }
 
 type Lox struct {
 	stdErr io.Writer
+	stdout io.Writer
 }
 
 func (r *Lox) RunFile(path string) error {
@@ -71,7 +72,7 @@ func (r *Lox) run(src string) {
 	}
 
 	glox := interpreter.New()
-
-	fmt.Println(glox.Interpret(exp))
+	out := glox.Interpret(exp)
+	fmt.Fprint(r.stdout, out, "\n")
 
 }
