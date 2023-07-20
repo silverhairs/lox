@@ -3,7 +3,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"glox/errors"
+	"glox/exception"
 	"glox/interpreter"
 	"glox/lexer"
 	"glox/parser"
@@ -16,7 +16,7 @@ const PROMPT = ">> "
 func RunFile(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
-		return errors.New(0, path, err.Error())
+		return exception.Generic(0, path, err.Error())
 	}
 	defer file.Close()
 
