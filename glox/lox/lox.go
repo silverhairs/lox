@@ -68,14 +68,15 @@ func (r *Lox) run(src string) {
 	exp, err := prsr.Parse()
 
 	if err != nil {
-		fmt.Fprintf(r.stdErr, "%v", err.Error())
+		fmt.Fprintf(r.stdErr, "%v\n", err.Error())
+		return
 	}
 
 	glox := interpreter.New()
 	out := glox.Interpret(exp)
 	if err, isErr := out.(error); isErr {
-		fmt.Fprintf(r.stdErr, "%v", err.Error())
+		fmt.Fprintf(r.stdErr, "%v\n", err.Error())
+		return
 	}
-	fmt.Fprint(r.stdout, out, "\n")
 
 }
