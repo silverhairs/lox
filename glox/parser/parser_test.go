@@ -13,7 +13,10 @@ func TestParseTernary(t *testing.T) {
 	lxr := lexer.New(code)
 	prsr := New(lxr.Tokenize())
 
-	result := prsr.Parse()
+	result, err := prsr.Parse()
+	if err != nil {
+		t.Fatalf("Parsing errors caught: %q", err.Error())
+	}
 
 	exp, isTernary := result.(*ast.Ternary)
 	if !isTernary {
@@ -49,7 +52,10 @@ func TestParseUnary(t *testing.T) {
 	lxr := lexer.New(code)
 	prsr := New(lxr.Tokenize())
 
-	result := prsr.Parse()
+	result, err := prsr.Parse()
+	if err != nil {
+		t.Fatalf("Parsing errors caught: %v", err.Error())
+	}
 
 	exp, isUnary := result.(*ast.Unary)
 	if !isUnary {
@@ -68,7 +74,10 @@ func TestParseBinary(t *testing.T) {
 	lxr := lexer.New(code)
 	prsr := New(lxr.Tokenize())
 
-	result := prsr.Parse()
+	result, err := prsr.Parse()
+	if err != nil {
+		t.Fatalf("Parsing errors caught: %v", err.Error())
+	}
 
 	exp, isBinary := result.(*ast.Binary)
 	if !isBinary {

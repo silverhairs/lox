@@ -7,8 +7,8 @@ import (
 )
 
 type Parser struct {
-	tokens   []token.Token
-	errors   []string
+	tokens []token.Token
+
 	position int
 }
 
@@ -16,47 +16,51 @@ func New(tokens []token.Token) *Parser {
 	return &Parser{tokens: tokens, position: 0}
 }
 
-func (p *Parser) Errors() []string {
-	return p.errors
-}
-
-func (p *Parser) Parse() ast.Expression {
+func (p *Parser) Parse() (ast.Expression, error) {
 	return p.expression()
 }
 
-func (p *Parser) expression() ast.Expression {
+func (p *Parser) expression() (ast.Expression, error) {
 	return p.ternary()
 }
 
-func (p *Parser) ternary() ast.Expression {
-	exp := p.equality()
+func (p *Parser) ternary() (ast.Expression, error) {
+	exp, err := p.equality()
 
 	for p.match(token.QUESTION_MARK) {
 		left := p.previous()
-		positive := p.equality()
+		positive, e := p.equality()
+		if e != nil {
+			err = e
+		}
 
 		for p.match(token.COLON) {
 			right := p.previous()
-			negative := p.ternary()
+			negative, e := p.ternary()
+			if e != nil {
+				err = e
+			}
 
 			exp = ast.NewTernaryConditional(exp, left, positive, right, negative)
 		}
 
 	}
 
-	return exp
+	return exp, err
 }
 
-func (p *Parser) equality() ast.Expression {
-	exp := p.comparison()
+func (p *Parser) equality() (ast.Expression, error) {
+	exp, err := p.comparison()
 
 	for p.match(token.BANG_EQ, token.EQ_EQ) {
 		operator := p.previous()
-		right := p.comparison()
-
+		right, e := p.comparison()
+		if err != nil {
+			err = e
+		}
 		exp = ast.NewBinaryExpression(exp, operator, right)
 	}
-	return exp
+	return exp, err
 
 }
 
@@ -96,83 +100,103 @@ func (p *Parser) previous() token.Token {
 	return p.tokens[p.position-1]
 }
 
-func (p *Parser) comparison() ast.Expression {
-	exp := p.term()
+func (p *Parser) comparison() (ast.Expression, error) {
+	exp, err := p.term()
 
 	for p.match(token.GREATER, token.GREATER_EQ, token.LESS, token.LESS_EQ) {
 		operator := p.previous()
-		right := p.term()
+		right, e := p.term()
+		if e != nil {
+			err = e
+		}
 		exp = ast.NewBinaryExpression(exp, operator, right)
 	}
 
-	return exp
+	return exp, err
 }
 
-func (p *Parser) term() ast.Expression {
-	exp := p.factor()
+func (p *Parser) term() (ast.Expression, error) {
+	exp, err := p.factor()
+	if err != nil {
+		return exp, err
+	}
 
 	for p.match(token.MINUS, token.PLUS) {
 		operator := p.previous()
-		right := p.factor()
+		right, e := p.factor()
+		if e != nil {
+			err = e
+		}
 		exp = ast.NewBinaryExpression(exp, operator, right)
 	}
 
-	return exp
+	return exp, err
 }
 
-func (p *Parser) factor() ast.Expression {
-	exp := p.unary()
+func (p *Parser) factor() (ast.Expression, error) {
+	exp, err := p.unary()
+	if err != nil {
+		return exp, err
+	}
 
 	for p.match(token.SLASH, token.ASTERISK) {
 		operator := p.previous()
-		right := p.unary()
+		right, e := p.unary()
+		if e != nil {
+			err = e
+		}
 		exp = ast.NewBinaryExpression(exp, operator, right)
 	}
 
-	return exp
+	return exp, err
 }
 
-func (p *Parser) unary() ast.Expression {
+func (p *Parser) unary() (ast.Expression, error) {
+	var err error
+
 	if p.match(token.BANG, token.MINUS) {
 		operator := p.previous()
-		right := p.unary()
-		return ast.NewUnaryExpression(operator, right)
+		right, e := p.unary()
+		if e != nil {
+			err = e
+		}
+		return ast.NewUnaryExpression(operator, right), err
 	}
 
 	return p.primary()
 }
 
-func (p *Parser) primary() ast.Expression {
+func (p *Parser) primary() (ast.Expression, error) {
 	if p.match(token.FALSE) {
-		return ast.NewLiteralExpression(false)
+		return ast.NewLiteralExpression(false), nil
 	}
 	if p.match(token.TRUE) {
-		return ast.NewLiteralExpression(true)
+		return ast.NewLiteralExpression(true), nil
 	}
 	if p.match(token.NUMBER, token.STRING) {
-		return ast.NewLiteralExpression(p.previous().Literal)
+		return ast.NewLiteralExpression(p.previous().Literal), nil
 	}
 	if p.match(token.L_PAREN) {
-		exp := p.expression()
+		exp, err := p.expression()
+		if err != nil {
+			return exp, err
+		}
 
-		p.consume(token.R_PAREN, "expect ')' after expression")
-		return ast.NewGroupingExp(exp)
+		_, err = p.consume(token.R_PAREN, "Expect ')' after expression")
+		return ast.NewGroupingExp(exp), err
 
 	}
 
-	panic(captureError(p.peek(), "expect expression"))
+	return nil, exception.Parse(p.peek())
 
 }
 
-func (p *Parser) consume(tokType token.TokenType, message string) token.Token {
+func (p *Parser) consume(tokType token.TokenType, message string) (token.Token, error) {
 	if p.check(tokType) {
-		return p.advance()
+		return p.advance(), nil
 	}
 	tok := p.peek()
-	err := captureError(tok, message)
-	//TODO: Maybe later capure the error instead of panicking.
-	// p.errors = append(p.errors, err.Error())
-	panic(err)
+	return tok, captureError(tok, message)
 
 }
 
@@ -183,33 +207,3 @@ func captureError(tok token.Token, msg string) error {
 
 	return exception.Generic(tok.Line, "'"+tok.Lexeme+"'", msg)
 }
-
-// Discards tokens that might case cascaded errors
-// func (p *Parser) synchronize() {
-// 	p.advance()
-
-// 	for !p.isAtEnd() {
-// 		if p.previous().Type == token.SEMICOLON {
-// 			return
-// 		}
-
-// 		for _, stmt := range statements {
-// 			if p.peek().Type == stmt {
-// 				return
-// 			}
-// 		}
-// 		p.advance()
-// 	}
-
-// }
-
-// var statements = []token.TokenType{
-// 	token.CLASS,
-// 	token.FUNCTION,
-// 	token.LET,
-// 	token.FOR,
-// 	token.IF,
-// 	token.WHILE,
-// 	token.PRINT,
-// 	token.RETURN,
-// }

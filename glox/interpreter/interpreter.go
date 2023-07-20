@@ -14,7 +14,7 @@ func New() *Interpreter {
 	return &Interpreter{}
 }
 
-func (i *Interpreter) Eval(exp ast.Expression) any {
+func (i *Interpreter) Interpret(exp ast.Expression) any {
 	return exp.Accept(i)
 }
 
@@ -33,8 +33,11 @@ func (i *Interpreter) VisitUnary(exp *ast.Unary) any {
 	case token.BANG:
 		return !isTruthy(right)
 	case token.MINUS:
-		num := panicWhenOperandIsNotNumber(exp.Operator, right)
-		return -num
+		num, err := checkOperand(exp.Operator, right)
+		if err != nil {
+			return err
+		}
+		return -*num
 
 	}
 
@@ -47,29 +50,59 @@ func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 
 	switch exp.Operator.Type {
 	case token.GREATER:
-		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
-		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
-		return leftNum > rightNum
+		leftNum, err := checkOperand(exp.Operator, left)
+		if err != nil {
+			return err
+		}
+		rightNum, err := checkOperand(exp.Operator, right)
+		if err != nil {
+			return err
+		}
+		return *leftNum > *rightNum
 	case token.GREATER_EQ:
-		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
-		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
-		return leftNum >= rightNum
+		leftNum, err := checkOperand(exp.Operator, left)
+		if err != nil {
+			return err
+		}
+		rightNum, err := checkOperand(exp.Operator, right)
+		if err != nil {
+			return err
+		}
+		return *leftNum >= *rightNum
 	case token.LESS:
-		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
-		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
-		return leftNum < rightNum
+		leftNum, err := checkOperand(exp.Operator, left)
+		if err != nil {
+			return err
+		}
+		rightNum, err := checkOperand(exp.Operator, right)
+		if err != nil {
+			return err
+		}
+		return *leftNum < *rightNum
 	case token.LESS_EQ:
-		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
-		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
-		return leftNum <= rightNum
+		leftNum, err := checkOperand(exp.Operator, left)
+		if err != nil {
+			return err
+		}
+		rightNum, err := checkOperand(exp.Operator, right)
+		if err != nil {
+			return err
+		}
+		return *leftNum <= *rightNum
 	case token.EQ_EQ:
 		return isEqual(left, right)
 	case token.BANG_EQ:
 		return !isEqual(left, right)
 	case token.MINUS:
-		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
-		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
-		return leftNum - rightNum
+		leftNum, err := checkOperand(exp.Operator, left)
+		if err != nil {
+			return err
+		}
+		rightNum, err := checkOperand(exp.Operator, right)
+		if err != nil {
+			return err
+		}
+		return *leftNum - *rightNum
 	case token.PLUS:
 		if leftNum, isLFloat := left.(float64); isLFloat {
 			rightNum, isRFloat := right.(float64)
@@ -82,17 +115,28 @@ func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 			}
 		}
 
-		err := exception.Runtime(exp.Operator, "Both operands must be eihter numbers or strings.")
-		panic(err)
+		return exception.Runtime(exp.Operator, "Both operands must be eihter numbers or strings.")
 
 	case token.SLASH:
-		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
-		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
-		return leftNum / rightNum
+		leftNum, err := checkOperand(exp.Operator, left)
+		if err != nil {
+			return err
+		}
+		rightNum, err := checkOperand(exp.Operator, right)
+		if err != nil {
+			return err
+		}
+		return *leftNum / *rightNum
 	case token.ASTERISK:
-		leftNum := panicWhenOperandIsNotNumber(exp.Operator, left)
-		rightNum := panicWhenOperandIsNotNumber(exp.Operator, right)
-		return leftNum * rightNum
+		leftNum, err := checkOperand(exp.Operator, left)
+		if err != nil {
+			return err
+		}
+		rightNum, err := checkOperand(exp.Operator, right)
+		if err != nil {
+			return err
+		}
+		return *leftNum * *rightNum
 	}
 
 	return nil
@@ -152,13 +196,4 @@ func checkOperand(operator token.Token, operand any) (*float64, error) {
 	}
 
 	return &num, nil
-}
-
-func panicWhenOperandIsNotNumber(operator token.Token, operand any) float64 {
-	num, err := checkOperand(operator, operand)
-	if err != nil {
-		panic(err)
-	} else {
-		return *num
-	}
 }
