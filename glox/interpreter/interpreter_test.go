@@ -9,8 +9,6 @@ import (
 	"testing"
 )
 
-type errorPredicate func(error) bool
-
 func TestInterpret(t *testing.T) {
 
 	x := rand.Float64()
