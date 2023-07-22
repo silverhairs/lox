@@ -112,7 +112,7 @@ func (s *Lexer) lex() {
 		} else if isAlpha(char) {
 			s.identifier()
 		} else {
-			exception.Short(s.line, fmt.Sprintf("Unexpected character %q", char))
+			s.addToken(token.ILLEGAL, s.peek())
 		}
 	}
 }

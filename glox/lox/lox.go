@@ -79,4 +79,6 @@ func (r *Lox) run(src string) {
 		return
 	}
 
+	fmt.Fprintf(r.stdout, "%v\n", out)
+
 }

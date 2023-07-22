@@ -53,7 +53,8 @@ const (
 	COMMENT_L = "COMMENT_LINE"
 	COMMENT_B = "COMMENT_BLOCK"
 
-	EOF = "EOF"
+	EOF     = "EOF"
+	ILLEGAL = "ILLEGAL"
 )
 
 type Token struct {
