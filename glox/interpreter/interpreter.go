@@ -108,14 +108,18 @@ func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 			rightNum, isRFloat := right.(float64)
 			if isRFloat {
 				return leftNum + rightNum
+			} else if rightVal, isRightStr := right.(string); isRightStr {
+				return fmt.Sprintf("%v%s", leftNum, rightVal)
 			}
 		} else if leftVal, isLeftStr := left.(string); isLeftStr {
 			if rightVal, isRightStr := right.(string); isRightStr {
 				return leftVal + rightVal
+			} else if rightNum, isRightNum := right.(float64); isRightNum {
+				return fmt.Sprintf("%s%v", leftVal, rightNum)
 			}
 		}
 
-		return exception.Runtime(exp.Operator, "Both operands must be eihter numbers or strings.")
+		return exception.Runtime(exp.Operator, "unsupported operands. This operation can only be performed with numbers and strings.")
 
 	case token.SLASH:
 		leftNum, err := checkOperand(exp.Operator, left)
