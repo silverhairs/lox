@@ -21,21 +21,17 @@ func New(stderr io.Writer, stdout io.Writer) *Interpreter {
 func (i *Interpreter) Interpret(smts []ast.Statement) any {
 	var err error
 	for _, smt := range smts {
-		err = i.execute(smt)
-		if err != nil {
-			break
-		}
+		i.execute(smt)
 	}
 	return err
 }
 
-func (i *Interpreter) execute(stmt ast.Statement) error {
+func (i *Interpreter) execute(stmt ast.Statement) {
 	val := stmt.Accept(i)
 	if err, isErr := val.(error); isErr {
-		return err
+		fmt.Fprintf(i.StdErr, "%s", err.Error())
 	}
 
-	return nil
 }
 
 func (i *Interpreter) VisitExprStmt(smt *ast.ExpressionStmt) any {

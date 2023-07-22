@@ -38,7 +38,8 @@ func TestInterpret(t *testing.T) {
 		if expr, err := prsr.Parse(); err != nil {
 			t.Fatalf("failed to parse code %q", code)
 		} else {
-			if out := intrprtr.Interpret(expr); out != nil || stderr.String() != "" {
+			intrprtr.Interpret(expr)
+			if stderr.String() != "" {
 				t.Fatalf("failed to interpret %q. expected=%v got=%v", code, expected, stderr.String())
 			}
 			actual := strings.TrimRight(stdout.String(), "\n")
@@ -73,13 +74,13 @@ func TestInterpret(t *testing.T) {
 		if expr, err := prsr.Parse(); err != nil {
 			t.Fatalf("failed to parse code %q", code)
 		} else {
-			intrprtr := New(stdout, stderr)
-			out := intrprtr.Interpret(expr)
+			intrprtr := New(stderr, stdout)
+			intrprtr.Interpret(expr)
 
-			if err, isErr := out.(error); !isErr {
-				t.Fatalf("failed to return error for=%q. expected=%q, got=%v", code, err, out)
+			if stderr.String() == "" {
+				t.Fatalf("failed to capture exception for=%q. expected=%s, got=%s", code, chunks, stderr.String())
 			} else {
-				actual := err.Error()
+				actual := stderr.String()
 				errorMsgIsOk := true
 				var notFound string
 				for _, msg := range chunks {
