@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"bytes"
 	"fmt"
 	"glox/lexer"
 	"glox/parser"
@@ -10,7 +11,8 @@ import (
 )
 
 func TestInterpret(t *testing.T) {
-
+	stderr := bytes.NewBufferString("")
+	stdout := bytes.NewBufferString("")
 	x := rand.Float64()
 	y := rand.Float64()
 	fixtures := map[string]string{
@@ -28,19 +30,25 @@ func TestInterpret(t *testing.T) {
 	}
 
 	for code, expected := range fixtures {
-		lxr := lexer.New(code)
+
+		lxr := lexer.New(fmt.Sprintf("print %s;", code))
 		prsr := parser.New(lxr.Tokenize())
-		intrprtr := New()
+		intrprtr := New(stderr, stdout)
 
 		if expr, err := prsr.Parse(); err != nil {
 			t.Fatalf("failed to parse code %q", code)
 		} else {
-			out := intrprtr.Interpret(expr)
-			actual := fmt.Sprintf("%v", out)
+			if out := intrprtr.Interpret(expr); out != nil || stderr.String() != "" {
+				t.Fatalf("failed to interpret %q. expected=%v got=%v", code, expected, stderr.String())
+			}
+			actual := strings.TrimRight(stdout.String(), "\n")
 			if actual != expected {
-				t.Fatalf("failed to interpret %q. expected=%v got=%v", code, expected, actual)
+				t.Fatalf("failed to interpret %q. expected=%q got=%q", code, expected, actual)
 			}
 		}
+
+		stderr.Reset()
+		stdout.Reset()
 	}
 
 	failures := map[string][]string{
@@ -65,7 +73,7 @@ func TestInterpret(t *testing.T) {
 		if expr, err := prsr.Parse(); err != nil {
 			t.Fatalf("failed to parse code %q", code)
 		} else {
-			intrprtr := New()
+			intrprtr := New(stdout, stderr)
 			out := intrprtr.Interpret(expr)
 
 			if err, isErr := out.(error); !isErr {
@@ -86,6 +94,9 @@ func TestInterpret(t *testing.T) {
 
 			}
 		}
+
+		stdout.Reset()
+		stderr.Reset()
 	}
 
 }

@@ -5,17 +5,55 @@ import (
 	"glox/ast"
 	"glox/exception"
 	"glox/token"
+	"io"
 	"math"
 )
 
-type Interpreter struct{}
-
-func New() *Interpreter {
-	return &Interpreter{}
+type Interpreter struct {
+	StdOut io.Writer
+	StdErr io.Writer
 }
 
-func (i *Interpreter) Interpret(exp ast.Expression) any {
-	return exp.Accept(i)
+func New(stderr io.Writer, stdout io.Writer) *Interpreter {
+	return &Interpreter{StdOut: stdout, StdErr: stderr}
+}
+
+func (i *Interpreter) Interpret(smts []ast.Statement) any {
+	var err error
+	for _, smt := range smts {
+		err = i.execute(smt)
+		if err != nil {
+			break
+		}
+	}
+	return err
+}
+
+func (i *Interpreter) execute(stmt ast.Statement) error {
+	val := stmt.Accept(i)
+	if err, isErr := val.(error); isErr {
+		return err
+	}
+
+	return nil
+}
+
+func (i *Interpreter) VisitExprStmt(smt *ast.ExpressionStmt) any {
+	val := i.evaluate(smt.Exp)
+	if err, isErr := val.(error); isErr {
+		return err
+	}
+	return nil
+}
+
+func (i *Interpreter) VisitPrintStmt(smt *ast.PrintSmt) any {
+	val := i.evaluate(smt.Exp)
+	if err, isErr := val.(error); isErr {
+		fmt.Fprintf(i.StdErr, "%s\n", err.Error())
+	} else {
+		fmt.Fprintf(i.StdOut, "%v\n", val)
+	}
+	return nil
 }
 
 func (i *Interpreter) VisitLiteral(exp *ast.Literal) any {

@@ -13,27 +13,38 @@ func TestParseTernary(t *testing.T) {
 	lxr := lexer.New(code)
 	prsr := New(lxr.Tokenize())
 
-	result, err := prsr.Parse()
+	program, err := prsr.Parse()
 	if err != nil {
 		t.Fatalf("Parsing errors caught: %q", err.Error())
 	}
 
-	exp, isTernary := result.(*ast.Ternary)
+	if len(program) != 1 {
+		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+	}
+
+	smt, isOk := program[0].(*ast.ExpressionStmt)
+	if !isOk {
+		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+	}
+
+	expr := smt.Exp
+
+	ternary, isTernary := expr.(*ast.Ternary)
 	if !isTernary {
-		t.Fatalf("result is not *ast.Ternary. got=%T", result)
+		t.Fatalf("result is not *ast.Ternary. got=%T", expr)
 	}
 
-	if exp.ThenOperator.Type != token.QUESTION_MARK {
-		t.Fatalf("exp.LeftOperator has the wrong token. expected='token.QUESTION_MARK' but got=%q", exp.ThenOperator.Type)
+	if ternary.ThenOperator.Type != token.QUESTION_MARK {
+		t.Fatalf("exp.LeftOperator has the wrong token. expected='token.QUESTION_MARK' but got=%q", ternary.ThenOperator.Type)
 	}
 
-	if exp.OrElseOperator.Type != token.COLON {
-		t.Fatalf("exp.RightOperator has the wrong token. expected='token.COLON' but got=%q", exp.ThenOperator.Type)
+	if ternary.OrElseOperator.Type != token.COLON {
+		t.Fatalf("exp.RightOperator has the wrong token. expected='token.COLON' but got=%q", ternary.ThenOperator.Type)
 	}
 
-	condition, isBinary := exp.Condition.(*ast.Binary)
+	condition, isBinary := ternary.Condition.(*ast.Binary)
 	if !isBinary {
-		t.Fatalf("exp.Condition is not *ast.Binary. got=%T", exp.Condition)
+		t.Fatalf("exp.Condition is not *ast.Binary. got=%T", ternary.Condition)
 	}
 
 	testLiteral(condition.Left, "15", t)
@@ -42,8 +53,8 @@ func TestParseTernary(t *testing.T) {
 	}
 
 	testLiteral(condition.Right, "1", t)
-	testLiteral(exp.Then, "abc", t)
-	testLiteral(exp.OrElse, "123", t)
+	testLiteral(ternary.Then, "abc", t)
+	testLiteral(ternary.OrElse, "123", t)
 
 }
 
@@ -52,21 +63,32 @@ func TestParseUnary(t *testing.T) {
 	lxr := lexer.New(code)
 	prsr := New(lxr.Tokenize())
 
-	result, err := prsr.Parse()
+	program, err := prsr.Parse()
 	if err != nil {
 		t.Fatalf("Parsing errors caught: %v", err.Error())
 	}
 
-	exp, isUnary := result.(*ast.Unary)
+	if len(program) != 1 {
+		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+	}
+
+	smt, isOk := program[0].(*ast.ExpressionStmt)
+	if !isOk {
+		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+	}
+
+	expr := smt.Exp
+
+	unary, isUnary := expr.(*ast.Unary)
 	if !isUnary {
-		t.Fatalf("result is not *ast.Unary. got=%T", result)
+		t.Fatalf("result is not *ast.Unary. got=%T", expr)
 	}
 
-	if exp.Operator.Type != token.BANG {
-		t.Fatalf("exp.Operator.Type is not token.BANG. got=%q", string(exp.Operator.Type))
+	if unary.Operator.Type != token.BANG {
+		t.Fatalf("exp.Operator.Type is not token.BANG. got=%q", string(unary.Operator.Type))
 	}
 
-	testLiteral(exp.Right, "true", t)
+	testLiteral(unary.Right, "true", t)
 }
 
 func TestParseBinary(t *testing.T) {
@@ -74,22 +96,33 @@ func TestParseBinary(t *testing.T) {
 	lxr := lexer.New(code)
 	prsr := New(lxr.Tokenize())
 
-	result, err := prsr.Parse()
+	program, err := prsr.Parse()
 	if err != nil {
 		t.Fatalf("Parsing errors caught: %v", err.Error())
 	}
 
-	exp, isBinary := result.(*ast.Binary)
+	if len(program) != 1 {
+		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+	}
+
+	smt, isOk := program[0].(*ast.ExpressionStmt)
+	if !isOk {
+		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+	}
+
+	expr := smt.Exp
+
+	binary, isBinary := expr.(*ast.Binary)
 	if !isBinary {
-		t.Fatalf("parsed expression is not *ast.Binary. got=%T", result)
+		t.Fatalf("parsed expression is not *ast.Binary. got=%T", expr)
 	}
 
-	testLiteral(exp.Left, "5", t)
-	if exp.Operator.Type != token.PLUS {
-		t.Fatalf("exp.Operator.Type is not token.PLUS. got=%q", string(exp.Operator.Type))
+	testLiteral(binary.Left, "5", t)
+	if binary.Operator.Type != token.PLUS {
+		t.Fatalf("exp.Operator.Type is not token.PLUS. got=%q", string(binary.Operator.Type))
 	}
 
-	testLiteral(exp.Right, "10", t)
+	testLiteral(binary.Right, "10", t)
 
 }
 

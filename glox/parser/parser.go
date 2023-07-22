@@ -7,8 +7,7 @@ import (
 )
 
 type Parser struct {
-	tokens []token.Token
-
+	tokens   []token.Token
 	position int
 }
 
@@ -16,8 +15,46 @@ func New(tokens []token.Token) *Parser {
 	return &Parser{tokens: tokens, position: 0}
 }
 
-func (p *Parser) Parse() (ast.Expression, error) {
-	return p.expression()
+func (p *Parser) Parse() ([]ast.Statement, error) {
+	return p.program()
+}
+
+func (p *Parser) program() ([]ast.Statement, error) {
+	stmts := []ast.Statement{}
+	var err error
+
+	for !p.isAtEnd() {
+		stmt, e := p.statement()
+		if e != nil {
+			err = e
+			break
+		}
+		stmts = append(stmts, stmt)
+	}
+
+	return stmts, err
+
+}
+
+func (p *Parser) statement() (ast.Statement, error) {
+
+	if p.match(token.PRINT) {
+		return p.printStatement()
+	}
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() (ast.Statement, error) {
+	exp, err := p.expression()
+	p.consume(token.SEMICOLON, "expect ';' after value.")
+	return ast.NewPrintSmt(exp), err
+
+}
+
+func (p *Parser) expressionStatement() (ast.Statement, error) {
+	exp, err := p.expression()
+	p.consume(token.SEMICOLON, "expect ';' after value.")
+	return ast.NewExprStmt(exp), err
 }
 
 func (p *Parser) expression() (ast.Expression, error) {

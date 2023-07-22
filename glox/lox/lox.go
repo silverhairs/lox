@@ -72,13 +72,7 @@ func (r *Lox) run(src string) {
 		return
 	}
 
-	glox := interpreter.New()
-	out := glox.Interpret(exp)
-	if err, isErr := out.(error); isErr {
-		fmt.Fprintf(r.stdErr, "%v\n", err.Error())
-		return
-	}
-
-	fmt.Fprintf(r.stdout, "%v\n", out)
+	glox := interpreter.New(r.stdErr, r.stdout)
+	glox.Interpret(exp)
 
 }
