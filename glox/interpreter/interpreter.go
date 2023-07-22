@@ -130,6 +130,10 @@ func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 		if err != nil {
 			return err
 		}
+
+		if *rightNum == 0 {
+			return exception.Runtime(exp.Operator, "division by zero")
+		}
 		return *leftNum / *rightNum
 	case token.ASTERISK:
 		leftNum, err := checkOperand(exp.Operator, left)
