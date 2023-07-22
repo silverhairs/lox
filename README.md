@@ -6,7 +6,9 @@
 
 ### From Binary (only available on macos and linux):
 
-The script below will download the `glox` binary in your system and give it executable permission. After this script, you can run `./glox` and it should start the REPL.
+Paste the script below in your terminal and press **Enter**.
+
+The script will download the latest `glox` binary release in your system and give it executable permission. After this script, you can run `./glox` and it should start the REPL.
 
 > Make sure you have [curl](https://curl.se/) installed in your system before running the script
 
