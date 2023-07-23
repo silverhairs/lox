@@ -34,7 +34,11 @@ go run main.go
 Production rules:
 
 ```txt
-    program    -> statement* EOF ;
+    program    -> declaration* EOF ;
+    declaration-> letDecl
+                | statement ;
+    letDecl    -> ("var" | "let") IDENTIFIER ("=" expression) ? ";" ;
+
     statement  -> exprStmt
                 | printStmt ;
     exprStmt   -> expression ";" ;

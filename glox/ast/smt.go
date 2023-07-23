@@ -1,8 +1,11 @@
 package ast
 
+import "glox/token"
+
 type StmtVisitor interface {
 	VisitPrintStmt(*PrintSmt) any
 	VisitExprStmt(*ExpressionStmt) any
+	VisitLetSmt(*LetSmt) any
 }
 
 type Statement interface {
@@ -11,6 +14,19 @@ type Statement interface {
 
 type PrintSmt struct {
 	Exp Expression
+}
+
+type LetSmt struct {
+	Name  token.Token
+	Value Expression
+}
+
+func NewLetSmt(name token.Token, value Expression) *LetSmt {
+	return &LetSmt{Name: name, Value: value}
+}
+
+func (smt *LetSmt) Accept(v StmtVisitor) any {
+	return v.VisitLetSmt(smt)
 }
 
 func NewPrintSmt(exp Expression) *PrintSmt {

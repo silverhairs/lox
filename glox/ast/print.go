@@ -37,3 +37,7 @@ func (p *printer) VisitLiteral(literal *Literal) any {
 func (p *printer) VisitTernary(ternary *Ternary) any {
 	return ternary.String()
 }
+
+func (p *printer) VisitVariable(variable *Variable) any {
+	return variable.Accept(p)
+}
