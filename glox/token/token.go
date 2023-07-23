@@ -81,6 +81,7 @@ var keywords = map[string]TokenType{
 	"this":   THIS,
 	"let":    LET,
 	"while":  WHILE,
+	"var":    LET,
 }
 
 func LookupIdentifier(keyword string) TokenType {
