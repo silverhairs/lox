@@ -3,6 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"glox/ast"
+	"glox/env"
 	"glox/exception"
 	"glox/token"
 	"io"
@@ -12,10 +13,11 @@ import (
 type Interpreter struct {
 	StdOut io.Writer
 	StdErr io.Writer
+	Env    *env.Environment
 }
 
 func New(stderr io.Writer, stdout io.Writer) *Interpreter {
-	return &Interpreter{StdOut: stdout, StdErr: stderr}
+	return &Interpreter{StdOut: stdout, StdErr: stderr, Env: env.New()}
 }
 
 func (i *Interpreter) Interpret(smts []ast.Statement) any {
@@ -31,7 +33,19 @@ func (i *Interpreter) execute(stmt ast.Statement) {
 	if err, isErr := val.(error); isErr {
 		fmt.Fprintf(i.StdErr, "%s", err.Error())
 	}
+}
 
+func (i *Interpreter) VisitLetSmt(smt *ast.LetSmt) any {
+	var val any
+	if smt.Value != nil {
+		val = i.evaluate(smt.Value)
+	}
+	if err, isErr := val.(error); isErr {
+		return err
+	}
+
+	i.Env.Define(smt.Name.Lexeme, val)
+	return nil
 }
 
 func (i *Interpreter) VisitExprStmt(smt *ast.ExpressionStmt) any {
@@ -50,6 +64,10 @@ func (i *Interpreter) VisitPrintStmt(smt *ast.PrintSmt) any {
 		fmt.Fprintf(i.StdOut, "%v\n", val)
 	}
 	return nil
+}
+
+func (i *Interpreter) VisitVariable(exp *ast.Variable) any {
+	return i.Env.Get(exp.Name)
 }
 
 func (i *Interpreter) VisitLiteral(exp *ast.Literal) any {

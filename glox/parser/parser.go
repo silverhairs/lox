@@ -24,7 +24,7 @@ func (p *Parser) program() ([]ast.Statement, error) {
 	var err error
 
 	for !p.isAtEnd() {
-		stmt, e := p.statement()
+		stmt, e := p.declaration()
 		if e != nil {
 			err = e
 			break
@@ -34,6 +34,28 @@ func (p *Parser) program() ([]ast.Statement, error) {
 
 	return stmts, err
 
+}
+
+func (p *Parser) declaration() (ast.Statement, error) {
+	if p.match(token.LET) {
+		return p.letDeclaration()
+	}
+	return p.statement()
+}
+
+func (p *Parser) letDeclaration() (ast.Statement, error) {
+	tok, err := p.consume(token.IDENTIFIER, "expected variable name.")
+	if err != nil {
+		return nil, err
+	}
+
+	var val ast.Expression
+	if p.match(token.EQUAL) {
+		val, err = p.expression()
+	}
+
+	p.consume(token.SEMICOLON, "expected ';' after variable declaration,")
+	return ast.NewLetSmt(tok, val), err
 }
 
 func (p *Parser) statement() (ast.Statement, error) {
@@ -222,6 +244,9 @@ func (p *Parser) primary() (ast.Expression, error) {
 		_, err = p.consume(token.R_PAREN, "Expect ')' after expression")
 		return ast.NewGroupingExp(exp), err
 
+	}
+	if p.match(token.IDENTIFIER) {
+		return ast.NewVariable(p.previous()), nil
 	}
 
 	return nil, exception.Parse(p.peek())

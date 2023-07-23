@@ -9,11 +9,12 @@ import (
 type ExpType string
 
 const (
-	BINARY_EXP  ExpType = "binary"
-	UNARY_EXP   ExpType = "unary"
-	GROUP_EXP   ExpType = "group"
-	LITERAL_EXP ExpType = "literal"
-	TERNARY_EXP ExpType = "ternary"
+	BINARY_EXP   ExpType = "binary"
+	UNARY_EXP    ExpType = "unary"
+	GROUP_EXP    ExpType = "group"
+	LITERAL_EXP  ExpType = "literal"
+	TERNARY_EXP  ExpType = "ternary"
+	VARIABLE_EXP ExpType = "variable"
 )
 
 type Expression interface {
@@ -28,6 +29,7 @@ type Visitor interface {
 	VisitGrouping(exp *Grouping) any
 	VisitLiteral(exp *Literal) any
 	VisitTernary(exp *Ternary) any
+	VisitVariable(exp *Variable) any
 }
 
 type Literal struct {
@@ -166,6 +168,26 @@ func NewTernaryConditional(condition Expression, thenOp token.Token, then Expres
 
 func (exp *Ternary) Accept(v Visitor) any {
 	return v.VisitTernary(exp)
+}
+
+type Variable struct {
+	Name token.Token
+}
+
+func NewVariable(name token.Token) *Variable {
+	return &Variable{Name: name}
+}
+
+func (v *Variable) Type() ExpType {
+	return VARIABLE_EXP
+}
+
+func (v *Variable) String() string {
+	return parenthesize(v.Type(), v.Name.Lexeme)
+}
+
+func (v *Variable) Accept(visitor Visitor) any {
+	return visitor.VisitVariable(v)
 }
 
 func parenthesize(name ExpType, value string) string {
