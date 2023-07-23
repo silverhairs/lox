@@ -77,6 +77,4 @@ func (r *Lox) run(src string, glox *interpreter.Interpreter) {
 
 	glox.Interpret(exp)
 
-	fmt.Fprintf(r.stdout, "%v\n", out)
-
 }
