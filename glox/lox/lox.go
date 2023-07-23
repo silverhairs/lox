@@ -38,16 +38,19 @@ func (r *Lox) RunFile(path string) error {
 		return err
 	}
 
+	glox := interpreter.New(r.stdErr, r.stdout)
+
 	bytes := make([]byte, info.Size())
 	if _, err = bufio.NewReader(file).Read(bytes); err != nil {
 		return err
 	}
-	r.run(string(bytes))
+	r.run(string(bytes), glox)
 	return nil
 }
 
 func (r *Lox) StartREPL(stdin io.Reader) {
 	scanner := bufio.NewScanner(stdin)
+	glox := interpreter.New(r.stdErr, r.stdout)
 
 	for {
 		fmt.Print(PROMPT)
@@ -56,11 +59,11 @@ func (r *Lox) StartREPL(stdin io.Reader) {
 		}
 
 		line := scanner.Text()
-		r.run(line)
+		r.run(line, glox)
 	}
 }
 
-func (r *Lox) run(src string) {
+func (r *Lox) run(src string, glox *interpreter.Interpreter) {
 	scnr := lexer.New(src)
 
 	tokens := scnr.Tokenize()
@@ -72,7 +75,6 @@ func (r *Lox) run(src string) {
 		return
 	}
 
-	glox := interpreter.New(r.stdErr, r.stdout)
 	glox.Interpret(exp)
 
 }
