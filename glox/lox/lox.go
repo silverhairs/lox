@@ -76,5 +76,4 @@ func (r *Lox) run(src string, glox *interpreter.Interpreter) {
 	}
 
 	glox.Interpret(exp)
-
 }
