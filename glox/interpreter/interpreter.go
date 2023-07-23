@@ -3,19 +3,71 @@ package interpreter
 import (
 	"fmt"
 	"glox/ast"
+	"glox/env"
 	"glox/exception"
 	"glox/token"
+	"io"
 	"math"
 )
 
-type Interpreter struct{}
-
-func New() *Interpreter {
-	return &Interpreter{}
+type Interpreter struct {
+	StdOut io.Writer
+	StdErr io.Writer
+	Env    *env.Environment
 }
 
-func (i *Interpreter) Interpret(exp ast.Expression) any {
-	return exp.Accept(i)
+func New(stderr io.Writer, stdout io.Writer) *Interpreter {
+	return &Interpreter{StdOut: stdout, StdErr: stderr, Env: env.New()}
+}
+
+func (i *Interpreter) Interpret(smts []ast.Statement) any {
+	var err error
+	for _, smt := range smts {
+		i.execute(smt)
+	}
+	return err
+}
+
+func (i *Interpreter) execute(stmt ast.Statement) {
+	val := stmt.Accept(i)
+	if err, isErr := val.(error); isErr {
+		fmt.Fprintf(i.StdErr, "%s", err.Error())
+	}
+}
+
+func (i *Interpreter) VisitLetSmt(smt *ast.LetSmt) any {
+	var val any
+	if smt.Value != nil {
+		val = i.evaluate(smt.Value)
+	}
+	if err, isErr := val.(error); isErr {
+		return err
+	}
+
+	i.Env.Define(smt.Name.Lexeme, val)
+	return nil
+}
+
+func (i *Interpreter) VisitExprStmt(smt *ast.ExpressionStmt) any {
+	val := i.evaluate(smt.Exp)
+	if err, isErr := val.(error); isErr {
+		return err
+	}
+	return nil
+}
+
+func (i *Interpreter) VisitPrintStmt(smt *ast.PrintSmt) any {
+	val := i.evaluate(smt.Exp)
+	if err, isErr := val.(error); isErr {
+		fmt.Fprintf(i.StdErr, "%s\n", err.Error())
+	} else {
+		fmt.Fprintf(i.StdOut, "%v\n", val)
+	}
+	return nil
+}
+
+func (i *Interpreter) VisitVariable(exp *ast.Variable) any {
+	return i.Env.Get(exp.Name)
 }
 
 func (i *Interpreter) VisitLiteral(exp *ast.Literal) any {
@@ -108,14 +160,18 @@ func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 			rightNum, isRFloat := right.(float64)
 			if isRFloat {
 				return leftNum + rightNum
+			} else if rightVal, isRightStr := right.(string); isRightStr {
+				return fmt.Sprintf("%v%s", leftNum, rightVal)
 			}
 		} else if leftVal, isLeftStr := left.(string); isLeftStr {
 			if rightVal, isRightStr := right.(string); isRightStr {
 				return leftVal + rightVal
+			} else if rightNum, isRightNum := right.(float64); isRightNum {
+				return fmt.Sprintf("%s%v", leftVal, rightNum)
 			}
 		}
 
-		return exception.Runtime(exp.Operator, "Both operands must be eihter numbers or strings.")
+		return exception.Runtime(exp.Operator, "unsupported operands. This operation can only be performed with numbers and strings.")
 
 	case token.SLASH:
 		leftNum, err := checkOperand(exp.Operator, left)
@@ -125,6 +181,10 @@ func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 		rightNum, err := checkOperand(exp.Operator, right)
 		if err != nil {
 			return err
+		}
+
+		if *rightNum == 0 {
+			return exception.Runtime(exp.Operator, "division by zero")
 		}
 		return *leftNum / *rightNum
 	case token.ASTERISK:

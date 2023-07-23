@@ -237,7 +237,6 @@ func (s *Lexer) identifier() {
 
 	literal := s.Source[s.start:s.current]
 	tok := token.LookupIdentifier(literal)
-
 	s.addTokenType(tok)
 }
 

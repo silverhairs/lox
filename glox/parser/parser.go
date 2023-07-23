@@ -7,8 +7,7 @@ import (
 )
 
 type Parser struct {
-	tokens []token.Token
-
+	tokens   []token.Token
 	position int
 }
 
@@ -16,8 +15,68 @@ func New(tokens []token.Token) *Parser {
 	return &Parser{tokens: tokens, position: 0}
 }
 
-func (p *Parser) Parse() (ast.Expression, error) {
-	return p.expression()
+func (p *Parser) Parse() ([]ast.Statement, error) {
+	return p.program()
+}
+
+func (p *Parser) program() ([]ast.Statement, error) {
+	stmts := []ast.Statement{}
+	var err error
+
+	for !p.isAtEnd() {
+		stmt, e := p.declaration()
+		if e != nil {
+			err = e
+			break
+		}
+		stmts = append(stmts, stmt)
+	}
+
+	return stmts, err
+
+}
+
+func (p *Parser) declaration() (ast.Statement, error) {
+	if p.match(token.LET) {
+		return p.letDeclaration()
+	}
+	return p.statement()
+}
+
+func (p *Parser) letDeclaration() (ast.Statement, error) {
+	tok, err := p.consume(token.IDENTIFIER, "expected variable name.")
+	if err != nil {
+		return nil, err
+	}
+
+	var val ast.Expression
+	if p.match(token.EQUAL) {
+		val, err = p.expression()
+	}
+
+	p.consume(token.SEMICOLON, "expected ';' after variable declaration,")
+	return ast.NewLetSmt(tok, val), err
+}
+
+func (p *Parser) statement() (ast.Statement, error) {
+
+	if p.match(token.PRINT) {
+		return p.printStatement()
+	}
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() (ast.Statement, error) {
+	exp, err := p.expression()
+	p.consume(token.SEMICOLON, "expect ';' after value.")
+	return ast.NewPrintSmt(exp), err
+
+}
+
+func (p *Parser) expressionStatement() (ast.Statement, error) {
+	exp, err := p.expression()
+	p.consume(token.SEMICOLON, "expect ';' after value.")
+	return ast.NewExprStmt(exp), err
 }
 
 func (p *Parser) expression() (ast.Expression, error) {
@@ -185,6 +244,9 @@ func (p *Parser) primary() (ast.Expression, error) {
 		_, err = p.consume(token.R_PAREN, "Expect ')' after expression")
 		return ast.NewGroupingExp(exp), err
 
+	}
+	if p.match(token.IDENTIFIER) {
+		return ast.NewVariable(p.previous()), nil
 	}
 
 	return nil, exception.Parse(p.peek())
