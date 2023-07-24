@@ -137,7 +137,6 @@ func TestInterpret(t *testing.T) {
 		}
 
 		if got != expected {
-			fmt.Printf("Got: %T\nExpected:%T", got, variable.value)
 			t.Fatalf("failed to keep state of defined variable in code=%q. got='%v'\nexpected='%v'.", variable.code, got, expected)
 		}
 
