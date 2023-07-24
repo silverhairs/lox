@@ -215,6 +215,12 @@ func (i *Interpreter) VisitTernary(exp *ast.Ternary) any {
 
 }
 
+func (i *Interpreter) VisitAssignment(exp *ast.Assignment) any {
+	val := i.evaluate(exp.Value)
+	i.Env.Assign(exp.Name, val)
+	return val
+}
+
 func (i *Interpreter) evaluate(exp ast.Expression) any {
 	return exp.Accept(i)
 }

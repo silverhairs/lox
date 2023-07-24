@@ -49,3 +49,19 @@ func TestGet(t *testing.T) {
 		t.Fatalf("failed to capture 'undefined variable'exception. got=%v", got)
 	}
 }
+
+func TestAssign(t *testing.T) {
+	e := New()
+	e.Define("name", `"boris"`)
+
+	err := e.Assign(token.Token{Type: token.IDENTIFIER, Lexeme: "name", Literal: nil, Line: 1}, "anya")
+
+	if err != nil {
+		t.Fatalf("failed to assign new value to variable=%v. got=%s", "name", err.Error())
+	}
+
+	if e.values["name"] != "anya" {
+		t.Fatalf("failed to assign new value to variable. expected=%v got=%v", "anya", e.values["name"])
+	}
+
+}

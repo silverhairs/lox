@@ -80,7 +80,27 @@ func (p *Parser) expressionStatement() (ast.Statement, error) {
 }
 
 func (p *Parser) expression() (ast.Expression, error) {
-	return p.ternary()
+	return p.assignment()
+}
+
+func (p *Parser) assignment() (ast.Expression, error) {
+	exp, err := p.ternary()
+
+	if p.match(token.EQUAL) {
+		equals := p.previous()
+		val, e := p.assignment()
+		if e != nil {
+			return exp, e
+		}
+
+		if variable, isVar := exp.(*ast.Variable); isVar {
+			return ast.NewAssignment(variable.Name, val), err
+		}
+
+		err = exception.Runtime(equals, "invalid assignment target.")
+	}
+
+	return exp, err
 }
 
 func (p *Parser) ternary() (ast.Expression, error) {
