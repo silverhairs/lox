@@ -40,11 +40,11 @@ func TestInterpret(t *testing.T) {
 		} else {
 			intrprtr.Interpret(expr)
 			if stderr.String() != "" {
-				t.Fatalf("failed to interpret %q. expected=%v got=%v", code, expected, stderr.String())
+				t.Fatalf("failed to evaluate %q. expected=%v got=%v", code, expected, stderr.String())
 			}
 			actual := strings.TrimRight(stdout.String(), "\n")
 			if actual != expected {
-				t.Fatalf("failed to interpret %q. expected=%q got=%q", code, expected, actual)
+				t.Fatalf("failed to evaluate %q. expected=%q got=%q", code, expected, actual)
 			}
 		}
 
