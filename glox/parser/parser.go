@@ -55,7 +55,7 @@ func (p *Parser) letDeclaration() (ast.Statement, error) {
 	}
 
 	p.consume(token.SEMICOLON, "expected ';' after variable declaration,")
-	return ast.NewLetSmt(tok, val), err
+	return ast.NewLetStmt(tok, val), err
 }
 
 func (p *Parser) statement() (ast.Statement, error) {
@@ -69,7 +69,7 @@ func (p *Parser) statement() (ast.Statement, error) {
 func (p *Parser) printStatement() (ast.Statement, error) {
 	exp, err := p.expression()
 	p.consume(token.SEMICOLON, "expect ';' after value.")
-	return ast.NewPrintSmt(exp), err
+	return ast.NewPrintStmt(exp), err
 
 }
 

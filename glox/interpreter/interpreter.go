@@ -20,10 +20,10 @@ func New(stderr io.Writer, stdout io.Writer) *Interpreter {
 	return &Interpreter{StdOut: stdout, StdErr: stderr, Env: env.New()}
 }
 
-func (i *Interpreter) Interpret(smts []ast.Statement) any {
+func (i *Interpreter) Interpret(stmts []ast.Statement) any {
 	var err error
-	for _, smt := range smts {
-		i.execute(smt)
+	for _, stmt := range stmts {
+		i.execute(stmt)
 	}
 	return err
 }
@@ -35,29 +35,29 @@ func (i *Interpreter) execute(stmt ast.Statement) {
 	}
 }
 
-func (i *Interpreter) VisitLetSmt(smt *ast.LetSmt) any {
+func (i *Interpreter) VisitLetStmt(stmt *ast.LetStmt) any {
 	var val any
-	if smt.Value != nil {
-		val = i.evaluate(smt.Value)
+	if stmt.Value != nil {
+		val = i.evaluate(stmt.Value)
 	}
 	if err, isErr := val.(error); isErr {
 		return err
 	}
 
-	i.Env.Define(smt.Name.Lexeme, val)
+	i.Env.Define(stmt.Name.Lexeme, val)
 	return nil
 }
 
-func (i *Interpreter) VisitExprStmt(smt *ast.ExpressionStmt) any {
-	val := i.evaluate(smt.Exp)
+func (i *Interpreter) VisitExprStmt(stmt *ast.ExpressionStmt) any {
+	val := i.evaluate(stmt.Exp)
 	if err, isErr := val.(error); isErr {
 		return err
 	}
 	return nil
 }
 
-func (i *Interpreter) VisitPrintStmt(smt *ast.PrintSmt) any {
-	val := i.evaluate(smt.Exp)
+func (i *Interpreter) VisitPrintStmt(stmt *ast.PrintStmt) any {
+	val := i.evaluate(stmt.Exp)
 	if err, isErr := val.(error); isErr {
 		fmt.Fprintf(i.StdErr, "%s\n", err.Error())
 	} else {
