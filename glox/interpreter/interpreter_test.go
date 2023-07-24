@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"glox/lexer"
 	"glox/parser"
+	"glox/token"
 	"math/rand"
 	"strings"
 	"testing"
@@ -36,7 +37,7 @@ func TestInterpret(t *testing.T) {
 		intrprtr := New(stderr, stdout)
 
 		if expr, err := prsr.Parse(); err != nil {
-			t.Fatalf("failed to parse code %q", code)
+			t.Fatalf("failed to parse code %q. \ngot=%v \nexpected=%v", code, err.Error(), expected)
 		} else {
 			intrprtr.Interpret(expr)
 			if stderr.String() != "" {
@@ -98,6 +99,50 @@ func TestInterpret(t *testing.T) {
 
 		stdout.Reset()
 		stderr.Reset()
+	}
+
+	vars := []struct {
+		code  string
+		name  string
+		value any
+	}{
+		{code: `let number = 12;`, name: "number", value: 12},
+		{code: `var seven = 7;`, name: "seven", value: 7},
+		{code: `let is_boolean=true;`, name: "is_boolean", value: true},
+		{code: `var name = "anya forger";`, name: "name", value: "anya forger"},
+	}
+
+	for _, variable := range vars {
+		lxr := lexer.New(variable.code)
+		prsr := parser.New(lxr.Tokenize())
+
+		stmts, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("failed to parse code %q. \ngot=%v", variable.code, err.Error())
+		}
+
+		i := New(stderr, stdout)
+		i.Interpret(stmts)
+
+		if stderr.String() != "" {
+			t.Fatalf("caught exception when evaluating code=%q. got=%v", variable.code, stderr.String())
+		}
+
+		tok := token.Token{Type: token.IDENTIFIER, Lexeme: variable.name, Literal: nil, Line: 1}
+		got := i.Env.Get(tok)
+
+		expected := variable.value
+		if num, isOk := expected.(int); isOk {
+			expected = float64(num)
+		}
+
+		if got != expected {
+			fmt.Printf("Got: %T\nExpected:%T", got, variable.value)
+			t.Fatalf("failed to keep state of defined variable in code=%q. got='%v'\nexpected='%v'.", variable.code, got, expected)
+		}
+
+		stderr.Reset()
+		stdout.Reset()
 	}
 
 }
