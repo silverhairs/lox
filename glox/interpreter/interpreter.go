@@ -217,7 +217,12 @@ func (i *Interpreter) VisitTernary(exp *ast.Ternary) any {
 
 func (i *Interpreter) VisitAssignment(exp *ast.Assignment) any {
 	val := i.evaluate(exp.Value)
-	i.Env.Assign(exp.Name, val)
+	if err, isErr := val.(error); isErr {
+		return err
+	}
+	if err := i.Env.Assign(exp.Name, val); err != nil {
+		return err
+	}
 	return val
 }
 
