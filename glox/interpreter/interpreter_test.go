@@ -48,7 +48,12 @@ func TestInterpret(t *testing.T) {
 				t.Fatalf("failed to evaluate %q. expected=%q got=%q", code, expected, actual)
 			}
 		}
-
+		if stderr.String() != "" && !strings.HasSuffix(stderr.String(), "\n") {
+			t.Fatalf("stderr message must end with a new line")
+		}
+		if stdout.String() != "" && !strings.HasSuffix(stdout.String(), "\n") {
+			t.Fatalf("stdout message must end with a new line")
+		}
 		stderr.Reset()
 		stdout.Reset()
 	}
@@ -95,6 +100,13 @@ func TestInterpret(t *testing.T) {
 				}
 
 			}
+		}
+
+		if stderr.String() != "" && !strings.HasSuffix(stderr.String(), "\n") {
+			t.Fatalf("stderr message must end with a new line")
+		}
+		if stdout.String() != "" && !strings.HasSuffix(stdout.String(), "\n") {
+			t.Fatalf("stdout message must end with a new line")
 		}
 
 		stdout.Reset()

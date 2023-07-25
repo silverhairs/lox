@@ -31,7 +31,7 @@ func (i *Interpreter) Interpret(stmts []ast.Statement) any {
 func (i *Interpreter) execute(stmt ast.Statement) {
 	val := stmt.Accept(i)
 	if err, isErr := val.(error); isErr {
-		fmt.Fprintf(i.StdErr, "%s", err.Error())
+		fmt.Fprintf(i.StdErr, "%s\n", err.Error())
 	}
 }
 
