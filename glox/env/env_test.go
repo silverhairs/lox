@@ -64,4 +64,16 @@ func TestAssign(t *testing.T) {
 		t.Fatalf("failed to assign new value to variable. expected=%v got=%v", "anya", e.values["name"])
 	}
 
+	undefined := token.Token{Type: token.IDENTIFIER, Lexeme: "nothing", Literal: nil, Line: 1}
+
+	err = e.Assign(undefined, 12)
+	if err == nil {
+		t.Fatal("assigning an undefined variable should results on an error.")
+	}
+
+	msg := err.Error()
+	if !strings.Contains(msg, "undefined variable") && !strings.Contains(msg, undefined.Lexeme) {
+		t.Fatalf("wrong error message for undefined variable. got='%s' expected contains=['%s', '%s']", msg, "undefined variable", undefined.Lexeme)
+	}
+
 }
