@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"glox/lexer"
 	"glox/parser"
+	"glox/token"
 	"math/rand"
 	"strings"
 	"testing"
@@ -36,18 +37,23 @@ func TestInterpret(t *testing.T) {
 		intrprtr := New(stderr, stdout)
 
 		if expr, err := prsr.Parse(); err != nil {
-			t.Fatalf("failed to parse code %q", code)
+			t.Fatalf("failed to parse code %q. \ngot=%v \nexpected=%v", code, err.Error(), expected)
 		} else {
 			intrprtr.Interpret(expr)
 			if stderr.String() != "" {
-				t.Fatalf("failed to interpret %q. expected=%v got=%v", code, expected, stderr.String())
+				t.Fatalf("failed to evaluate %q. expected=%v got=%v", code, expected, stderr.String())
 			}
 			actual := strings.TrimRight(stdout.String(), "\n")
 			if actual != expected {
-				t.Fatalf("failed to interpret %q. expected=%q got=%q", code, expected, actual)
+				t.Fatalf("failed to evaluate %q. expected=%q got=%q", code, expected, actual)
 			}
 		}
-
+		if stderr.String() != "" && !strings.HasSuffix(stderr.String(), "\n") {
+			t.Fatalf("stderr message must end with a new line")
+		}
+		if stdout.String() != "" && !strings.HasSuffix(stdout.String(), "\n") {
+			t.Fatalf("stdout message must end with a new line")
+		}
 		stderr.Reset()
 		stdout.Reset()
 	}
@@ -96,8 +102,58 @@ func TestInterpret(t *testing.T) {
 			}
 		}
 
+		if stderr.String() != "" && !strings.HasSuffix(stderr.String(), "\n") {
+			t.Fatalf("stderr message must end with a new line")
+		}
+		if stdout.String() != "" && !strings.HasSuffix(stdout.String(), "\n") {
+			t.Fatalf("stdout message must end with a new line")
+		}
+
 		stdout.Reset()
 		stderr.Reset()
+	}
+
+	vars := []struct {
+		code  string
+		name  string
+		value any
+	}{
+		{code: `let number = 12;`, name: "number", value: 12},
+		{code: `var seven = 7;`, name: "seven", value: 7},
+		{code: `let is_boolean=true;`, name: "is_boolean", value: true},
+		{code: `var name = "anya forger";`, name: "name", value: "anya forger"},
+	}
+
+	for _, variable := range vars {
+		lxr := lexer.New(variable.code)
+		prsr := parser.New(lxr.Tokenize())
+
+		stmts, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("failed to parse code %q. \ngot=%v", variable.code, err.Error())
+		}
+
+		i := New(stderr, stdout)
+		i.Interpret(stmts)
+
+		if stderr.String() != "" {
+			t.Fatalf("caught exception when evaluating code=%q. got=%v", variable.code, stderr.String())
+		}
+
+		tok := token.Token{Type: token.IDENTIFIER, Lexeme: variable.name, Literal: nil, Line: 1}
+		got := i.Env.Get(tok)
+
+		expected := variable.value
+		if num, isOk := expected.(int); isOk {
+			expected = float64(num)
+		}
+
+		if got != expected {
+			t.Fatalf("failed to keep state of defined variable in code=%q. got='%v'\nexpected='%v'.", variable.code, got, expected)
+		}
+
+		stderr.Reset()
+		stdout.Reset()
 	}
 
 }

@@ -55,7 +55,7 @@ func (p *Parser) letDeclaration() (ast.Statement, error) {
 	}
 
 	p.consume(token.SEMICOLON, "expected ';' after variable declaration,")
-	return ast.NewLetSmt(tok, val), err
+	return ast.NewLetStmt(tok, val), err
 }
 
 func (p *Parser) statement() (ast.Statement, error) {
@@ -69,7 +69,7 @@ func (p *Parser) statement() (ast.Statement, error) {
 func (p *Parser) printStatement() (ast.Statement, error) {
 	exp, err := p.expression()
 	p.consume(token.SEMICOLON, "expect ';' after value.")
-	return ast.NewPrintSmt(exp), err
+	return ast.NewPrintStmt(exp), err
 
 }
 
@@ -80,7 +80,27 @@ func (p *Parser) expressionStatement() (ast.Statement, error) {
 }
 
 func (p *Parser) expression() (ast.Expression, error) {
-	return p.ternary()
+	return p.assignment()
+}
+
+func (p *Parser) assignment() (ast.Expression, error) {
+	exp, err := p.ternary()
+
+	if p.match(token.EQUAL) {
+		equals := p.previous()
+		val, e := p.assignment()
+		if e != nil {
+			return exp, e
+		}
+
+		if variable, isVar := exp.(*ast.Variable); isVar {
+			return ast.NewAssignment(variable.Name, val), err
+		}
+
+		err = exception.Runtime(equals, "invalid assignment target.")
+	}
+
+	return exp, err
 }
 
 func (p *Parser) ternary() (ast.Expression, error) {

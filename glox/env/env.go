@@ -23,3 +23,11 @@ func (env *Environment) Get(name token.Token) any {
 	}
 	return exception.Runtime(name, "undefined variable '"+name.Lexeme+"'.")
 }
+
+func (env *Environment) Assign(name token.Token, value any) error {
+	if _, isOk := env.values[name.Lexeme]; !isOk {
+		return exception.Runtime(name, "undefined variable '"+name.Lexeme+"'.")
+	}
+	env.values[name.Lexeme] = value
+	return nil
+}

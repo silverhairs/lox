@@ -22,12 +22,12 @@ func TestParseTernary(t *testing.T) {
 		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
 	}
 
-	smt, isOk := program[0].(*ast.ExpressionStmt)
+	stmt, isOk := program[0].(*ast.ExpressionStmt)
 	if !isOk {
 		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
 	}
 
-	expr := smt.Exp
+	expr := stmt.Exp
 
 	ternary, isTernary := expr.(*ast.Ternary)
 	if !isTernary {
@@ -72,12 +72,12 @@ func TestParseUnary(t *testing.T) {
 		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
 	}
 
-	smt, isOk := program[0].(*ast.ExpressionStmt)
+	stmt, isOk := program[0].(*ast.ExpressionStmt)
 	if !isOk {
 		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
 	}
 
-	expr := smt.Exp
+	expr := stmt.Exp
 
 	unary, isUnary := expr.(*ast.Unary)
 	if !isUnary {
@@ -105,12 +105,12 @@ func TestParseBinary(t *testing.T) {
 		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
 	}
 
-	smt, isOk := program[0].(*ast.ExpressionStmt)
+	stmt, isOk := program[0].(*ast.ExpressionStmt)
 	if !isOk {
 		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
 	}
 
-	expr := smt.Exp
+	expr := stmt.Exp
 
 	binary, isBinary := expr.(*ast.Binary)
 	if !isBinary {

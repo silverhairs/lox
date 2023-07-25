@@ -9,12 +9,13 @@ import (
 type ExpType string
 
 const (
-	BINARY_EXP   ExpType = "binary"
-	UNARY_EXP    ExpType = "unary"
-	GROUP_EXP    ExpType = "group"
-	LITERAL_EXP  ExpType = "literal"
-	TERNARY_EXP  ExpType = "ternary"
-	VARIABLE_EXP ExpType = "variable"
+	BINARY_EXP     ExpType = "binary"
+	UNARY_EXP      ExpType = "unary"
+	GROUP_EXP      ExpType = "group"
+	LITERAL_EXP    ExpType = "literal"
+	TERNARY_EXP    ExpType = "ternary"
+	VARIABLE_EXP   ExpType = "variable"
+	ASSIGNMENT_EXP ExpType = "assignment"
 )
 
 type Expression interface {
@@ -30,6 +31,7 @@ type Visitor interface {
 	VisitLiteral(exp *Literal) any
 	VisitTernary(exp *Ternary) any
 	VisitVariable(exp *Variable) any
+	VisitAssignment(exp *Assignment) any
 }
 
 type Literal struct {
@@ -188,6 +190,32 @@ func (v *Variable) String() string {
 
 func (v *Variable) Accept(visitor Visitor) any {
 	return visitor.VisitVariable(v)
+}
+
+type Assignment struct {
+	Name  token.Token
+	Value Expression
+}
+
+func NewAssignment(name token.Token, value Expression) *Assignment {
+	return &Assignment{Name: name, Value: value}
+}
+
+func (exp *Assignment) Type() ExpType {
+	return ASSIGNMENT_EXP
+}
+
+func (exp *Assignment) String() string {
+	var out bytes.Buffer
+	out.WriteString("(")
+	out.WriteString(exp.Name.Lexeme)
+	out.WriteString(exp.Value.String())
+	out.WriteString(")")
+	return parenthesize(exp.Type(), out.String())
+}
+
+func (exp *Assignment) Accept(v Visitor) any {
+	return v.VisitAssignment(exp)
 }
 
 func parenthesize(name ExpType, value string) string {
