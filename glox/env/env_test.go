@@ -42,7 +42,7 @@ func TestGet(t *testing.T) {
 	got := e.Get(undefined)
 
 	if err, isErr := got.(error); isErr {
-		if !strings.Contains(err.Error(), "undefined variable") || !strings.Contains(err.Error(), "RuntimeException") {
+		if !(strings.Contains(err.Error(), "undefined variable") && strings.Contains(err.Error(), "RuntimeException")) {
 			t.Fatalf("wrong error message. expected a RuntimeException with message 'undefined variable'. got=%q", err.Error())
 		}
 	} else {
@@ -63,7 +63,6 @@ func TestAssign(t *testing.T) {
 	if e.values["name"] != "anya" {
 		t.Fatalf("failed to assign new value to variable. expected=%v got=%v", "anya", e.values["name"])
 	}
-
 	undefined := token.Token{Type: token.IDENTIFIER, Lexeme: "nothing", Literal: nil, Line: 1}
 
 	err = e.Assign(undefined, 12)
@@ -72,7 +71,7 @@ func TestAssign(t *testing.T) {
 	}
 
 	msg := err.Error()
-	if !strings.Contains(msg, "undefined variable") && !strings.Contains(msg, undefined.Lexeme) {
+	if !(strings.Contains(msg, "undefined variable") && strings.Contains(msg, undefined.Lexeme)) {
 		t.Fatalf("wrong error message for undefined variable. got='%s' expected contains=['%s', '%s']", msg, "undefined variable", undefined.Lexeme)
 	}
 
