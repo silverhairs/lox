@@ -53,6 +53,7 @@ func (i *Interpreter) VisitExprStmt(stmt *ast.ExpressionStmt) any {
 	if err, isErr := val.(error); isErr {
 		return err
 	}
+	fmt.Fprintf(i.StdOut, "%v\n", val)
 	return nil
 }
 
