@@ -17,7 +17,7 @@ type Interpreter struct {
 }
 
 func New(stderr io.Writer, stdout io.Writer) *Interpreter {
-	return &Interpreter{StdOut: stdout, StdErr: stderr, Env: env.New()}
+	return &Interpreter{StdOut: stdout, StdErr: stderr, Env: env.Global()}
 }
 
 func (i *Interpreter) Interpret(stmts []ast.Statement) any {
