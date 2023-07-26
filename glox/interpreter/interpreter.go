@@ -81,7 +81,11 @@ func (i *Interpreter) executeBlock(stmts []ast.Statement, env *env.Environment) 
 }
 
 func (i *Interpreter) VisitVariable(exp *ast.Variable) any {
-	return i.Env.Get(exp.Name)
+	if res := i.Env.Get(exp.Name); res != nil {
+		return res
+	}
+
+	return exception.Runtime(exp.Name, fmt.Sprintf("tried to access variable '%s' which holds a nil value.", exp.Name.Lexeme))
 }
 
 func (i *Interpreter) VisitLiteral(exp *ast.Literal) any {
