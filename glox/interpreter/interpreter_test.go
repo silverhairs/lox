@@ -59,18 +59,18 @@ func TestInterpret(t *testing.T) {
 	}
 
 	failures := map[string][]string{
-		"1+false": {
+		"1+false;": {
 			"unsupported operands. This operation can only be performed with numbers and strings.",
 			"+",
 		},
-		"1/0":        {"division by zero", "/"},
-		"1-false":    {"Operator \"-\" only accepts number operands", "-"},
-		"-\"yes\"":   {"Operator \"-\" only accepts number operands", "-"},
-		"true*false": {"Operator \"*\" only accepts number operands", "*"},
-		"false>true": {"Operator \">\" only accepts number operands", ">"},
-		"false>=12":  {"Operator \">=\" only accepts number operands", ">="},
-		"true<=12":   {"Operator \"<=\" only accepts number operands", "<="},
-		"true<true":  {"Operator \"<\" only accepts number operands", "<"},
+		"1/0;":        {"division by zero", "/"},
+		"1-false;":    {"Operator \"-\" only accepts number operands", "-"},
+		"-\"yes\";":   {"Operator \"-\" only accepts number operands", "-"},
+		"true*false;": {"Operator \"*\" only accepts number operands", "*"},
+		"false>true;": {"Operator \">\" only accepts number operands", ">"},
+		"false>=12;":  {"Operator \">=\" only accepts number operands", ">="},
+		"true<=12;":   {"Operator \"<=\" only accepts number operands", "<="},
+		"true<true;":  {"Operator \"<\" only accepts number operands", "<"},
 	}
 
 	for code, chunks := range failures {

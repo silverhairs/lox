@@ -59,7 +59,7 @@ func TestParseTernary(t *testing.T) {
 }
 
 func TestParseUnary(t *testing.T) {
-	code := `!true`
+	code := `!true;`
 	lxr := lexer.New(code)
 	prsr := New(lxr.Tokenize())
 
