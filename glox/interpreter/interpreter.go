@@ -66,6 +66,20 @@ func (i *Interpreter) VisitPrintStmt(stmt *ast.PrintStmt) any {
 	return nil
 }
 
+func (i *Interpreter) VisitBlockStmt(stmt *ast.BlockStmt) any {
+	i.executeBlock(stmt.Stmts, env.New(i.Env))
+	return nil
+}
+
+func (i *Interpreter) executeBlock(stmts []ast.Statement, env *env.Environment) {
+	prev := i.Env
+	i.Env = env
+	for _, stmt := range stmts {
+		i.execute(stmt)
+	}
+	i.Env = prev
+}
+
 func (i *Interpreter) VisitVariable(exp *ast.Variable) any {
 	return i.Env.Get(exp.Name)
 }

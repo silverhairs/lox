@@ -6,6 +6,7 @@ type StmtVisitor interface {
 	VisitPrintStmt(*PrintStmt) any
 	VisitExprStmt(*ExpressionStmt) any
 	VisitLetStmt(*LetStmt) any
+	VisitBlockStmt(*BlockStmt) any
 }
 
 type Statement interface {
@@ -47,4 +48,16 @@ func NewExprStmt(exp Expression) *ExpressionStmt {
 
 func (stmt *ExpressionStmt) Accept(v StmtVisitor) any {
 	return v.VisitExprStmt(stmt)
+}
+
+type BlockStmt struct {
+	Stmts []Statement
+}
+
+func NewBlockStmt(stmts []Statement) *BlockStmt {
+	return &BlockStmt{Stmts: stmts}
+}
+
+func (stmt *BlockStmt) Accept(v StmtVisitor) any {
+	return v.VisitBlockStmt(stmt)
 }
