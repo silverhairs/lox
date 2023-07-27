@@ -54,7 +54,9 @@ func (p *Parser) letDeclaration() (ast.Statement, error) {
 		val, err = p.expression()
 	}
 
-	p.consume(token.SEMICOLON, "expected ';' after variable declaration,")
+	if _, e := p.consume(token.SEMICOLON, "expect ';' after variable declaration."); e != nil {
+		err = e
+	}
 	return ast.NewLetStmt(tok, val), err
 }
 
@@ -62,20 +64,41 @@ func (p *Parser) statement() (ast.Statement, error) {
 
 	if p.match(token.PRINT) {
 		return p.printStatement()
+	} else if p.match(token.L_BRACE) {
+		block, err := p.block()
+		return ast.NewBlockStmt(block), err
 	}
 	return p.expressionStatement()
 }
 
+func (p *Parser) block() ([]ast.Statement, error) {
+	stmts := []ast.Statement{}
+	var err error
+	for !p.check(token.R_BRACE) && !p.isAtEnd() {
+		stmt, e := p.declaration()
+		if err != nil {
+			return stmts, e
+		}
+		stmts = append(stmts, stmt)
+	}
+	_, err = p.consume(token.R_BRACE, "expect '}' after block.")
+	return stmts, err
+}
+
 func (p *Parser) printStatement() (ast.Statement, error) {
 	exp, err := p.expression()
-	p.consume(token.SEMICOLON, "expect ';' after value.")
+	if _, e := p.consume(token.SEMICOLON, "expect ';' after value."); e != nil {
+		err = e
+	}
 	return ast.NewPrintStmt(exp), err
 
 }
 
 func (p *Parser) expressionStatement() (ast.Statement, error) {
 	exp, err := p.expression()
-	p.consume(token.SEMICOLON, "expect ';' after value.")
+	if _, e := p.consume(token.SEMICOLON, "expect ';' after value."); e != nil {
+		err = e
+	}
 	return ast.NewExprStmt(exp), err
 }
 
@@ -261,7 +284,9 @@ func (p *Parser) primary() (ast.Expression, error) {
 			return exp, err
 		}
 
-		_, err = p.consume(token.R_PAREN, "Expect ')' after expression")
+		if _, e := p.consume(token.R_PAREN, "Expect ')' after expression"); e != nil {
+			err = e
+		}
 		return ast.NewGroupingExp(exp), err
 
 	}

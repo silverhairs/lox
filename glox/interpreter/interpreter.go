@@ -17,7 +17,7 @@ type Interpreter struct {
 }
 
 func New(stderr io.Writer, stdout io.Writer) *Interpreter {
-	return &Interpreter{StdOut: stdout, StdErr: stderr, Env: env.New()}
+	return &Interpreter{StdOut: stdout, StdErr: stderr, Env: env.Global()}
 }
 
 func (i *Interpreter) Interpret(stmts []ast.Statement) any {
@@ -53,6 +53,7 @@ func (i *Interpreter) VisitExprStmt(stmt *ast.ExpressionStmt) any {
 	if err, isErr := val.(error); isErr {
 		return err
 	}
+	fmt.Fprintf(i.StdOut, "%v\n", val)
 	return nil
 }
 
@@ -66,8 +67,26 @@ func (i *Interpreter) VisitPrintStmt(stmt *ast.PrintStmt) any {
 	return nil
 }
 
+func (i *Interpreter) VisitBlockStmt(stmt *ast.BlockStmt) any {
+	i.executeBlock(stmt.Stmts, env.New(i.Env))
+	return nil
+}
+
+func (i *Interpreter) executeBlock(stmts []ast.Statement, env *env.Environment) {
+	prev := i.Env
+	i.Env = env
+	for _, stmt := range stmts {
+		i.execute(stmt)
+	}
+	i.Env = prev
+}
+
 func (i *Interpreter) VisitVariable(exp *ast.Variable) any {
-	return i.Env.Get(exp.Name)
+	if res := i.Env.Get(exp.Name); res != nil {
+		return res
+	}
+
+	return exception.Runtime(exp.Name, fmt.Sprintf("tried to access variable '%s' which holds a nil value.", exp.Name.Lexeme))
 }
 
 func (i *Interpreter) VisitLiteral(exp *ast.Literal) any {
