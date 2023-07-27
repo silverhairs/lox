@@ -68,4 +68,25 @@ Production rules:
                 | "+" | "-" | "*" | "/" ;
     ternary -> expression "?" expression ":" expression;
 ```
+
+## Example code snippet
+> For now the interpreter does not handle source files, so this is to be done in the REPL (line by line).
+```js
+let age = 15;
+let is_adult = age >= 18;
+
+if (is_adult){
+    print "You are an adult";
+  } else{
+    print "You cannot drink";
+  }
+
+ {
+   let age = age+3;
+   print age;
+   let message = age >= 18 ? "is an adult" : "cannot drink";
+   print message;
+ }
+print age;
+```
 </samp>
