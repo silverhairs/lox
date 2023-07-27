@@ -14,16 +14,15 @@ The script below will download the latest released binary in your system and req
 
 ```sh
 curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releases/latest \
-| grep "browser_download_url.*glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m)" \
+| grep "browser_download_url.*glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m | sed 's/x86_64/amd64/')" \
 | cut -d '"' -f 4 \
 | wget -qi - \
-&& chmod +x glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m) \
-&& sudo mv glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m) $PWD/glox
+&& chmod +x glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m | sed 's/x86_64/amd64/') \
+&& mv glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m | sed 's/x86_64/amd64/') $PWD/glox
 ```
 
 **About the released binary**:
  * You need to have [cURL](https://curl.se/) installed in your system for the above script to work.
- * You will be prompted to enter your password after running the script, the input is only used to confirm `chmod +x` and grant the program executable permission.
  * I don't have a specific release schedule, I just cut a new release whenever a major feature has been implemented.
  * Currently the latest release only holds binaries for macos and linux, if you have windows... idk what to tell yah (seek help i guess). I will include windows later in the release workflow though, I just need to get a windows computer to test.
 
