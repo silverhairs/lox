@@ -48,6 +48,16 @@ func (i *Interpreter) VisitLetStmt(stmt *ast.LetStmt) any {
 	return nil
 }
 
+func (i *Interpreter) VisitIfStmt(stmt *ast.IfStmt) any {
+	if isTruthy(i.evaluate(stmt.Condition)) {
+		i.execute(stmt.Then)
+	} else if stmt.OrElse != nil {
+		i.execute(stmt.OrElse)
+	}
+
+	return nil
+}
+
 func (i *Interpreter) VisitExprStmt(stmt *ast.ExpressionStmt) any {
 	val := i.evaluate(stmt.Exp)
 	if err, isErr := val.(error); isErr {

@@ -40,9 +40,12 @@ Production rules:
     letDecl    -> ("var" | "let") IDENTIFIER ("=" expression) ? ";" ;
 
     statement  -> exprStmt
+                | ifStmt
                 | printStmt
                 | blockStmt ;
     exprStmt   -> expression ";" ;
+    ifStmt     -> "if" "(" expression ")" statement
+                ("else" statement)? ;
     printStmt  -> "print" expression ";" ;
     blockStmt  -> "{" declaration* "}" ;
 

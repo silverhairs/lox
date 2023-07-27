@@ -37,10 +37,41 @@ func (p *Parser) program() ([]ast.Statement, error) {
 }
 
 func (p *Parser) declaration() (ast.Statement, error) {
-	if p.match(token.LET) {
+	if p.match(token.IF) {
+		return p.ifStatement()
+	} else if p.match(token.LET) {
 		return p.letDeclaration()
 	}
 	return p.statement()
+}
+
+func (p *Parser) ifStatement() (ast.Statement, error) {
+	var err error
+	_, err = p.consume(token.L_PAREN, "expected '(' after 'if'.")
+	if err != nil {
+		return nil, err
+	}
+	condition, e := p.expression()
+	if e != nil {
+		return nil, e
+	}
+	_, err = p.consume(token.R_PAREN, "expected ')' after if condition")
+	if err != nil {
+		return nil, err
+	}
+
+	then, e := p.statement()
+	if e != nil {
+		return nil, e
+	}
+	var orElse ast.Statement
+
+	if p.match(token.ELSE) {
+		orElse, err = p.statement()
+	}
+
+	return ast.NewIfStmt(condition, then, orElse), err
+
 }
 
 func (p *Parser) letDeclaration() (ast.Statement, error) {
