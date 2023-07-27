@@ -1,16 +1,16 @@
+<samp>
+
 # Implementation of the [Lox Programming language](https://craftinginterpreters.com/the-lox-language.html)
 
 ## [WIP]
 
 ## Quick Start
+> Source files are not yet supported... will handle this later. Currently the safest way to play with the interpreter is using the REPL.
+---
+You have two options to run the REPL, you can either install the latest released binary, or you can clone the repo locally and run the `main.go` file.
 
-### From Binary (only available on macos and linux):
-
-Paste the script below in your terminal and press **Enter**.
-
-The script will download the latest `glox` binary release in your system and give it executable permission. After this script, you can run `./glox` and it should start the REPL.
-
-> Make sure you have [curl](https://curl.se/) installed in your system before running the script
+### Using Release Binary
+The script below will download the latest released binary in your system and request for execution permission, once granted, you can start the REPL by executing the `./glox` in the directory where the binary is located.
 
 ```sh
 curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releases/latest \
@@ -21,13 +21,19 @@ curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releas
 && sudo mv glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m) $PWD/glox
 ```
 
-### From Source
+**About the released binary**:
+ * You need to have [cURL](https://curl.se/) installed in your system for the above script to work.
+ * You will be prompted to enter your password after running the script, the input is only used to confirm `chmod +x` and grant the program executable permission.
+ * I don't have a specific release schedule, I just cut a new release whenever a major feature has been implemented.
+ * Currently the latest release only holds binaries for macos and linux, if you have windows... idk what to tell yah (seek help i guess). I will include windows later in the release workflow though, I just need to get a windows computer to test.
 
-Cloning the repository and runing `main.go` should start the REPL. `main.go` is located in `crafting-interpreters/glox`. You need to have Golang installed in your system for this option.
+### Using source code
+1. Clone the repo
+2. Navigate to `crafting-interpreters/glox` (command: `cd ./glox`)
+3. Run the main.go file (command: `go run main.go`)
 
-```sh
-go run main.go
-```
+**Requirements**:
+ * You need to have Go installed in your system
 
 ## Grammar
 
@@ -63,3 +69,4 @@ Production rules:
                 | "+" | "-" | "*" | "/" ;
     ternary -> expression "?" expression ":" expression;
 ```
+</samp>
