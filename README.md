@@ -10,7 +10,7 @@
 You have two options to run the REPL, you can either install the latest released binary, or you can clone the repo locally and run the `main.go` file.
 
 ### Using Release Binary
-The script below will download the latest released binary in your system and request for execution permission, once granted, you can start the REPL by executing the `./glox` in the directory where the binary is located.
+The script below will download the latest released binary in your system and request for execution permission, once granted, you can start the REPL by executing the command `./glox` in the directory where you ran the script.
 
 ```sh
 curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releases/latest \
@@ -38,7 +38,7 @@ curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releas
 
 Production rules:
 
-```txt
+```bnf
     program    -> declaration* EOF ;
     declaration-> letDecl
                 | statement ;
