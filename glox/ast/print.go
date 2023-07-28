@@ -39,9 +39,9 @@ func (p *printer) VisitTernary(ternary *Ternary) any {
 }
 
 func (p *printer) VisitVariable(variable *Variable) any {
-	return variable.Accept(p)
+	return variable.String()
 }
 
 func (p *printer) VisitAssignment(assign *Assignment) any {
-	return assign.Accept(p)
+	return assign.String()
 }
