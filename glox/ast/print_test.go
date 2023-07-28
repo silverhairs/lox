@@ -31,6 +31,12 @@ func TestPrint(t *testing.T) {
 			OrElseOperator: token.Token{Type: token.COLON, Lexeme: ":", Line: 1},
 			OrElse:         &Literal{Value: 2},
 		},
+		&Literal{Value: "yes"},
+		&Variable{Name: token.Token{Type: token.IDENTIFIER, Lexeme: "number", Line: 1}},
+		&Assignment{
+			Name:  token.Token{Type: token.IDENTIFIER, Lexeme: "number", Line: 1},
+			Value: NewLiteralExpression(12),
+		},
 	}
 	printer := NewPrinter()
 
