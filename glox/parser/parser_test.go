@@ -11,7 +11,11 @@ func TestParseTernary(t *testing.T) {
 	code := ` 15 > 1 ? "abc" : "123";`
 
 	lxr := lexer.New(code)
-	prsr := New(lxr.Tokenize())
+	tokens, err := lxr.Tokenize()
+	if err != nil {
+		t.Fatalf("Scanning failed with exception='%v'", err.Error())
+	}
+	prsr := New(tokens)
 
 	program, err := prsr.Parse()
 	if err != nil {
@@ -61,7 +65,11 @@ func TestParseTernary(t *testing.T) {
 func TestParseUnary(t *testing.T) {
 	code := `!true;`
 	lxr := lexer.New(code)
-	prsr := New(lxr.Tokenize())
+	tokens, err := lxr.Tokenize()
+	if err != nil {
+		t.Fatalf("Scanning failed with exception='%v'", err.Error())
+	}
+	prsr := New(tokens)
 
 	program, err := prsr.Parse()
 	if err != nil {
@@ -94,7 +102,11 @@ func TestParseUnary(t *testing.T) {
 func TestParseBinary(t *testing.T) {
 	code := `5 + 10;`
 	lxr := lexer.New(code)
-	prsr := New(lxr.Tokenize())
+	tokens, err := lxr.Tokenize()
+	if err != nil {
+		t.Fatalf("Scanning failed with exception='%v'", err.Error())
+	}
+	prsr := New(tokens)
 
 	program, err := prsr.Parse()
 	if err != nil {

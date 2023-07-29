@@ -118,6 +118,9 @@ func (p *Parser) block() ([]ast.Statement, error) {
 
 func (p *Parser) printStatement() (ast.Statement, error) {
 	exp, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
 	if _, e := p.consume(token.SEMICOLON, "expect ';' after value."); e != nil {
 		err = e
 	}
@@ -127,6 +130,9 @@ func (p *Parser) printStatement() (ast.Statement, error) {
 
 func (p *Parser) expressionStatement() (ast.Statement, error) {
 	exp, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
 	if _, e := p.consume(token.SEMICOLON, "expect ';' after value."); e != nil {
 		err = e
 	}
@@ -315,7 +321,7 @@ func (p *Parser) primary() (ast.Expression, error) {
 			return exp, err
 		}
 
-		if _, e := p.consume(token.R_PAREN, "Expect ')' after expression"); e != nil {
+		if _, e := p.consume(token.R_PAREN, "expected ')' after expression"); e != nil {
 			err = e
 		}
 		return ast.NewGroupingExp(exp), err

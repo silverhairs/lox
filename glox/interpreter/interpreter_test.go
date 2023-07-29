@@ -33,7 +33,11 @@ func TestInterpret(t *testing.T) {
 	for code, expected := range fixtures {
 
 		lxr := lexer.New(fmt.Sprintf("print %s;", code))
-		prsr := parser.New(lxr.Tokenize())
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := parser.New(tokens)
 		intrprtr := New(stderr, stdout)
 
 		if expr, err := prsr.Parse(); err != nil {
@@ -75,7 +79,11 @@ func TestInterpret(t *testing.T) {
 
 	for code, chunks := range failures {
 		lxr := lexer.New(code)
-		prsr := parser.New(lxr.Tokenize())
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := parser.New(tokens)
 
 		if expr, err := prsr.Parse(); err != nil {
 			t.Fatalf("failed to parse code %q", code)
@@ -126,7 +134,11 @@ func TestInterpret(t *testing.T) {
 
 	for _, variable := range vars {
 		lxr := lexer.New(variable.code)
-		prsr := parser.New(lxr.Tokenize())
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := parser.New(tokens)
 
 		stmts, err := prsr.Parse()
 		if err != nil {
