@@ -115,6 +115,7 @@ func TestParseUnary(t *testing.T) {
 		expr := stmt.Exp
 
 		if passed := testUnary(expr, test.want, t); !passed {
+			t.Errorf("testUnary failed for '%s'", code)
 			t.FailNow()
 		}
 	}
@@ -132,6 +133,70 @@ func TestParseBinary(t *testing.T) {
 				ast.NewLiteralExpression(5),
 				token.Token{Type: token.PLUS, Lexeme: "+", Line: 1},
 				ast.NewLiteralExpression(10),
+			),
+		},
+		{
+			code: "5==12;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(5),
+				token.Token{Type: token.EQ_EQ, Lexeme: "==", Line: 1},
+				ast.NewLiteralExpression(12),
+			),
+		},
+		{
+			code: "true != false;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(true),
+				token.Token{Type: token.BANG_EQ, Lexeme: "!=", Line: 1},
+				ast.NewLiteralExpression(false),
+			),
+		},
+		{
+			code: "13 > 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(13),
+				token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+
+		{
+			code: "13 >= 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(13),
+				token.Token{Type: token.GREATER_EQ, Lexeme: ">=", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+		{
+			code: "87 < 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(87),
+				token.Token{Type: token.LESS, Lexeme: "<", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		}, {
+			code: "87 <= 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(87),
+				token.Token{Type: token.LESS_EQ, Lexeme: "<=", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+		{
+			code: " 12 * 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(12),
+				token.Token{Type: token.ASTERISK, Lexeme: "*", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+		{
+			code: " 12 / 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(12),
+				token.Token{Type: token.SLASH, Lexeme: "/", Line: 1},
+				ast.NewLiteralExpression(90),
 			),
 		},
 	}
@@ -161,6 +226,7 @@ func TestParseBinary(t *testing.T) {
 
 		expr := stmt.Exp
 		if passed := testBinary(expr, test.want, t); !passed {
+			t.Errorf("testBinary failed for '%s'", code)
 			t.FailNow()
 		}
 	}
