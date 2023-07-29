@@ -63,79 +63,107 @@ func TestParseTernary(t *testing.T) {
 }
 
 func TestParseUnary(t *testing.T) {
-	code := `!true;`
-	lxr := lexer.New(code)
-	tokens, err := lxr.Tokenize()
-	if err != nil {
-		t.Fatalf("Scanning failed with exception='%v'", err.Error())
+	tests := []struct {
+		code string
+		want *ast.Unary
+	}{
+		{
+			code: `!true;`,
+			want: ast.NewUnaryExpression(
+				token.Token{Type: token.BANG, Lexeme: "!", Line: 1},
+				ast.NewLiteralExpression(true),
+			),
+		},
+		{
+			code: "-1;",
+			want: ast.NewUnaryExpression(
+				token.Token{Type: token.MINUS, Lexeme: "-", Line: 1},
+				ast.NewLiteralExpression(1),
+			),
+		},
+		{
+			code: `!false;`,
+			want: ast.NewUnaryExpression(
+				token.Token{Type: token.BANG, Lexeme: "!", Line: 1},
+				ast.NewLiteralExpression(false),
+			),
+		},
 	}
-	prsr := New(tokens)
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := New(tokens)
 
-	program, err := prsr.Parse()
-	if err != nil {
-		t.Fatalf("Parsing errors caught: %v", err.Error())
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("Parsing errors caught: %v", err.Error())
+		}
+
+		if len(program) != 1 {
+			t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+		}
+
+		stmt, isOk := program[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+		}
+
+		expr := stmt.Exp
+
+		if passed := testUnary(expr, test.want, t); !passed {
+			t.FailNow()
+		}
 	}
 
-	if len(program) != 1 {
-		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
-	}
-
-	stmt, isOk := program[0].(*ast.ExpressionStmt)
-	if !isOk {
-		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
-	}
-
-	expr := stmt.Exp
-
-	unary, isUnary := expr.(*ast.Unary)
-	if !isUnary {
-		t.Fatalf("result is not *ast.Unary. got=%T", expr)
-	}
-
-	if unary.Operator.Type != token.BANG {
-		t.Fatalf("exp.Operator.Type is not token.BANG. got=%q", string(unary.Operator.Type))
-	}
-
-	testLiteral(unary.Right, "true", t)
 }
 
 func TestParseBinary(t *testing.T) {
-	code := `5 + 10;`
-	lxr := lexer.New(code)
-	tokens, err := lxr.Tokenize()
-	if err != nil {
-		t.Fatalf("Scanning failed with exception='%v'", err.Error())
-	}
-	prsr := New(tokens)
-
-	program, err := prsr.Parse()
-	if err != nil {
-		t.Fatalf("Parsing errors caught: %v", err.Error())
-	}
-
-	if len(program) != 1 {
-		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+	tests := []struct {
+		code string
+		want *ast.Binary
+	}{
+		{
+			code: "5+10;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(5),
+				token.Token{Type: token.PLUS, Lexeme: "+", Line: 1},
+				ast.NewLiteralExpression(10),
+			),
+		},
 	}
 
-	stmt, isOk := program[0].(*ast.ExpressionStmt)
-	if !isOk {
-		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := New(tokens)
+
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("Parsing errors caught: %v", err.Error())
+		}
+
+		if len(program) != 1 {
+			t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+		}
+
+		stmt, isOk := program[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+		}
+
+		expr := stmt.Exp
+		if passed := testBinary(expr, test.want, t); !passed {
+			t.FailNow()
+		}
 	}
-
-	expr := stmt.Exp
-
-	binary, isBinary := expr.(*ast.Binary)
-	if !isBinary {
-		t.Fatalf("parsed expression is not *ast.Binary. got=%T", expr)
-	}
-
-	testLiteral(binary.Left, "5", t)
-	if binary.Operator.Type != token.PLUS {
-		t.Fatalf("exp.Operator.Type is not token.PLUS. got=%q", string(binary.Operator.Type))
-	}
-
-	testLiteral(binary.Right, "10", t)
-
 }
 
 func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) {
@@ -155,4 +183,52 @@ func assertLiteral(exp ast.Expression, expected *ast.Literal) (bool, *ast.Litera
 		return false, nil
 	}
 	return true, expected
+}
+
+func testBinary(exp ast.Expression, expected *ast.Binary, t *testing.T) bool {
+	binary, isOk := exp.(*ast.Binary)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Binary. got='%T'", exp)
+		return false
+	}
+
+	if binary.Left.String() != expected.Left.String() {
+		want, got := expected.Left, binary.Left
+		t.Errorf("wrong value for binary.Left. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if binary.Operator.Lexeme != expected.Operator.Lexeme {
+		want, got := expected.Operator.Lexeme, binary.Operator.Lexeme
+		t.Errorf("wrong value for binary.Operator. expected='%s' got='%s'", want, got)
+		return false
+	}
+
+	if binary.Right.String() != expected.Right.String() {
+		want, got := expected.Right, binary.Right
+		t.Errorf("wrong value for binary.Right. expected='%v' got='%v'", want, got)
+		return false
+	}
+	return true
+}
+
+func testUnary(exp ast.Expression, expected *ast.Unary, t *testing.T) bool {
+	unary, isOk := exp.(*ast.Unary)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Unary. got='%T'", exp)
+		return false
+	}
+
+	if unary.Operator.Lexeme != expected.Operator.Lexeme {
+		want, got := expected.Operator, unary.Operator
+		t.Errorf("wrong value for unary.Operator. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if unary.Right.String() != expected.Right.String() {
+		want, got := expected.Right, unary.Right
+		t.Errorf("wrong value for unary.Right. expected='%v' got='%v'", want, got)
+		return false
+	}
+	return true
 }
