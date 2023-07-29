@@ -382,6 +382,52 @@ func TestParseGrouping(t *testing.T) {
 	}
 }
 
+func TestParseVariable(t *testing.T) {
+	tests := []struct {
+		code string
+		want *ast.Variable
+	}{
+		{
+			code: "maybe_12;",
+			want: ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "maybe_12", Line: 1}),
+		},
+
+		{
+			code: "random_value;",
+			want: ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "random_value", Line: 1}),
+		},
+	}
+
+	for _, test := range tests {
+		lxr := lexer.New(test.code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := New(tokens)
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("code:'%v'\tParsing errors caught: %v", test.code, err.Error())
+		}
+		if len(program) != 1 {
+			t.Fatalf("code:'%v'\tprogram has wrong number of statements. expected=%d got=%d", test.code, 1, len(program))
+		}
+		smt, isOk := program[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("code:'%v'\tprogram[0] is not *ast.ExpressionStmt. got=%T", test.code, program[0])
+		}
+
+		exp, isOk := smt.Exp.(*ast.Variable)
+		if !isOk {
+			t.Fatalf("code:'%v'\t smt.Exp is not *ast.Variable. got=%T", test.code, smt.Exp)
+		}
+		if passed := testVariable(exp, test.want, t); !passed {
+			t.Errorf("testVariable failed for '%s'", test.code)
+			t.FailNow()
+		}
+	}
+}
+
 func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) {
 	isLiteral, literal := assertLiteral(exp, ast.NewLiteralExpression(expectedValue))
 	if !isLiteral {
@@ -444,6 +490,21 @@ func testUnary(exp ast.Expression, expected *ast.Unary, t *testing.T) bool {
 	if unary.Right.String() != expected.Right.String() {
 		want, got := expected.Right, unary.Right
 		t.Errorf("wrong value for unary.Right. expected='%v' got='%v'", want, got)
+		return false
+	}
+	return true
+}
+
+func testVariable(exp ast.Expression, expected *ast.Variable, t *testing.T) bool {
+	variable, isOk := exp.(*ast.Variable)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Variable. got='%T'", exp)
+		return false
+	}
+
+	if variable.Name.Lexeme != expected.Name.Lexeme {
+		want, got := expected.Name.Lexeme, variable.Name.Lexeme
+		t.Errorf("wrong value for variable.Name. expected='%v' got='%v'", want, got)
 		return false
 	}
 	return true
