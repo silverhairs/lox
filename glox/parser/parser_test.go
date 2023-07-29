@@ -4,6 +4,7 @@ import (
 	"glox/ast"
 	"glox/lexer"
 	"glox/token"
+	"strings"
 	"testing"
 )
 
@@ -361,6 +362,23 @@ func TestParseGrouping(t *testing.T) {
 		if group.Exp.String() != test.exp.String() {
 			t.Fatalf("wrong group.Exp expected='%v'. got='%v'", test.exp, group.Exp)
 		}
+	}
+	code := `(5+10;`
+	lxr := lexer.New(code)
+	tokens, err := lxr.Tokenize()
+	if err != nil {
+		t.Fatalf("Scanning failed with exception='%v'", err.Error())
+	}
+	prsr := New(tokens)
+	_, err = prsr.Parse()
+	if err == nil {
+		t.Fatalf("Parsing should have caught an error on code='%s'", code)
+	}
+
+	chunk := "expected ')' after expression"
+	got := err.Error()
+	if !strings.Contains(got, chunk) {
+		t.Fatalf("exception message wrong. expected to contain='%s' but got='%s'", chunk, got)
 	}
 }
 
