@@ -428,6 +428,103 @@ func TestParseVariable(t *testing.T) {
 	}
 }
 
+func ParseAssignment(t *testing.T) {
+	tests := []struct {
+		code string
+		want *ast.Assignment
+	}{
+		{
+			code: "maybe_12 = 12;",
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "maybe_12", Line: 1},
+				ast.NewLiteralExpression(12),
+			),
+		},
+		{
+			code: `the_name = "John";`,
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "the_name", Line: 1},
+				ast.NewLiteralExpression("John"),
+			),
+		},
+		{
+			code: `can_drink = 12 >= 18? true: false;`,
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "can_drink", Line: 1},
+				ast.NewTernaryConditional(
+					ast.NewBinaryExpression(
+						ast.NewLiteralExpression(12),
+						token.Token{Type: token.GREATER_EQ, Lexeme: ">=", Line: 1},
+						ast.NewLiteralExpression(18),
+					),
+					token.Token{Type: token.QUESTION_MARK, Lexeme: "?", Line: 1},
+					ast.NewLiteralExpression(true),
+					token.Token{Type: token.COLON, Lexeme: ":", Line: 1},
+					ast.NewLiteralExpression(false),
+				),
+			),
+		},
+		{
+			code: `negative = -1;`,
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "negative", Line: 1},
+				ast.NewUnaryExpression(
+					token.Token{Type: token.MINUS, Lexeme: "-", Line: 1},
+					ast.NewLiteralExpression(1),
+				),
+			),
+		},
+		{
+			code: `twelve = 6*2;`,
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "twelve", Line: 1},
+				ast.NewBinaryExpression(
+					ast.NewLiteralExpression(6),
+					token.Token{Type: token.ASTERISK, Lexeme: "*", Line: 1},
+					ast.NewLiteralExpression(2),
+				),
+			),
+		},
+		{
+			code: `var_reference = twelve;`,
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "var_reference", Line: 1},
+				ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "twelve", Line: 1}),
+			),
+		},
+	}
+
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("code='%s'\tScanning failed with exception='%v'", code, err.Error())
+		}
+		prsr := New(tokens)
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("code='%s'\tParsing errors caught: %v", code, err.Error())
+		}
+		if len(program) != 1 {
+			t.Fatalf("code='%s'\tprogram has wrong number of statements. expected=%d got=%d", code, 1, len(program))
+		}
+		smt, isOk := program[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("code='%s'\tprogram[0] is not *ast.ExpressionStmt. got=%T", code, program[0])
+		}
+		expr, isOk := smt.Exp.(*ast.Assignment)
+		if !isOk {
+			t.Fatalf("code='%s'\t smt.Exp is not *ast.Assignment. got=%T", code, smt.Exp)
+		}
+
+		if passed := testAssignment(expr, test.want, t); !passed {
+			t.Errorf("testAssignment failed for '%s'", code)
+			t.FailNow()
+		}
+	}
+}
+
 func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) {
 	isLiteral, literal := assertLiteral(exp, ast.NewLiteralExpression(expectedValue))
 	if !isLiteral {
@@ -507,5 +604,27 @@ func testVariable(exp ast.Expression, expected *ast.Variable, t *testing.T) bool
 		t.Errorf("wrong value for variable.Name. expected='%v' got='%v'", want, got)
 		return false
 	}
+	return true
+}
+
+func testAssignment(exp ast.Expression, expected *ast.Assignment, t *testing.T) bool {
+	assign, isOk := exp.(*ast.Assignment)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Assignment. got='%T'", exp)
+		return false
+	}
+
+	if assign.Name.Lexeme != expected.Name.Lexeme {
+		want, got := expected.Name.Lexeme, assign.Name.Lexeme
+		t.Errorf("wrong value for assign.Name. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if assign.Value.String() != expected.Value.String() {
+		want, got := expected.Value, assign.Value
+		t.Errorf("wrong value for assign.Value. expected='%v' got='%v'", want, got)
+		return false
+	}
+
 	return true
 }
