@@ -618,40 +618,6 @@ func ParseStatement(t *testing.T) {
 			t.Errorf("testStmt failed for '%s'", code)
 			t.FailNow()
 		}
-		// switch test.want.(type) {
-		// case *ast.LetStmt:
-		// 	if passed := testLetStmt(stmt, test.want.(*ast.LetStmt), t); !passed {
-		// 		t.Errorf("testLetStmt failed for '%s'", code)
-		// 		t.FailNow()
-		// 	}
-
-		// case *ast.PrintStmt:
-		// 	if passed := testPrintStmt(stmt, test.want.(*ast.PrintStmt), t); !passed {
-		// 		t.Errorf("testPrintStmt failed for '%s'", code)
-		// 		t.FailNow()
-		// 	}
-
-		// case *ast.ExpressionStmt:
-		// 	if passed := testExprStmt(stmt, test.want.(*ast.ExpressionStmt), t); !passed {
-		// 		t.Errorf("testExpressionStmt failed for '%s'", code)
-		// 		t.FailNow()
-		// 	}
-
-		// case *ast.BlockStmt:
-		// 	if passed := testBlockStmt(stmt, test.want.(*ast.BlockStmt), t); !passed {
-		// 		t.Errorf("testBlockStmt failed for '%s'", code)
-		// 		t.FailNow()
-		// 	}
-
-		// case *ast.IfStmt:
-		// 	if passed := testIfStmt(stmt, test.want.(*ast.IfStmt), t); !passed {
-		// 		t.Errorf("testIfStmt failed for '%s'", code)
-		// 		t.FailNow()
-		// 	}
-
-		// default:
-		// 	t.Fatalf("code='%s'\ttest.want does not have a test function. got=%T", code, test.want)
-		// }
 	}
 }
 
