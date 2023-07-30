@@ -525,6 +525,136 @@ func ParseAssignment(t *testing.T) {
 	}
 }
 
+func ParseStatement(t *testing.T) {
+	tests := []struct {
+		code string
+		want ast.Statement
+	}{
+		{
+			code: "var maybe_12 = 12;",
+			want: ast.NewLetStmt(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "maybe_12", Line: 1},
+				ast.NewLiteralExpression(12),
+			),
+		},
+		{
+			code: `print "John";`,
+			want: ast.NewPrintStmt(
+				ast.NewLiteralExpression("John"),
+			),
+		},
+		{
+			code: `12;`,
+			want: ast.NewExprStmt(
+				ast.NewLiteralExpression(12),
+			),
+		},
+		{
+			code: `{ 12; }`,
+			want: ast.NewBlockStmt(
+				[]ast.Statement{
+					ast.NewExprStmt(ast.NewLiteralExpression(12)),
+				},
+			),
+		},
+		{
+			code: `if (12 > 10) { print "yes"; }`,
+			want: ast.NewIfStmt(
+				ast.NewBinaryExpression(
+					ast.NewLiteralExpression(12),
+					token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+					ast.NewLiteralExpression(10),
+				),
+				ast.NewBlockStmt(
+					[]ast.Statement{
+						ast.NewPrintStmt(ast.NewLiteralExpression("yes")),
+					},
+				),
+				nil,
+			),
+		},
+		{
+			code: `if (12 > 10) { print "yes"; } else { print "no"; }`,
+			want: ast.NewIfStmt(
+				ast.NewBinaryExpression(
+					ast.NewLiteralExpression(12),
+					token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+					ast.NewLiteralExpression(10),
+				),
+				ast.NewBlockStmt(
+					[]ast.Statement{
+						ast.NewPrintStmt(ast.NewLiteralExpression("yes")),
+					},
+				),
+				ast.NewBlockStmt(
+					[]ast.Statement{
+						ast.NewPrintStmt(ast.NewLiteralExpression("no")),
+					},
+				),
+			),
+		},
+	}
+
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("code='%s'\tScanning failed with exception='%v'", code, err.Error())
+		}
+		prsr := New(tokens)
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("code='%s'\tParsing errors caught: %v", code, err.Error())
+		}
+
+		if len(program) != 1 {
+			t.Fatalf("code='%s'\tprogram has wrong number of statements. expected=%d got=%d", code, 1, len(program))
+		}
+
+		stmt := program[0]
+
+		if passed := testStmt(stmt, test.want, t); !passed {
+			t.Errorf("testStmt failed for '%s'", code)
+			t.FailNow()
+		}
+		// switch test.want.(type) {
+		// case *ast.LetStmt:
+		// 	if passed := testLetStmt(stmt, test.want.(*ast.LetStmt), t); !passed {
+		// 		t.Errorf("testLetStmt failed for '%s'", code)
+		// 		t.FailNow()
+		// 	}
+
+		// case *ast.PrintStmt:
+		// 	if passed := testPrintStmt(stmt, test.want.(*ast.PrintStmt), t); !passed {
+		// 		t.Errorf("testPrintStmt failed for '%s'", code)
+		// 		t.FailNow()
+		// 	}
+
+		// case *ast.ExpressionStmt:
+		// 	if passed := testExprStmt(stmt, test.want.(*ast.ExpressionStmt), t); !passed {
+		// 		t.Errorf("testExpressionStmt failed for '%s'", code)
+		// 		t.FailNow()
+		// 	}
+
+		// case *ast.BlockStmt:
+		// 	if passed := testBlockStmt(stmt, test.want.(*ast.BlockStmt), t); !passed {
+		// 		t.Errorf("testBlockStmt failed for '%s'", code)
+		// 		t.FailNow()
+		// 	}
+
+		// case *ast.IfStmt:
+		// 	if passed := testIfStmt(stmt, test.want.(*ast.IfStmt), t); !passed {
+		// 		t.Errorf("testIfStmt failed for '%s'", code)
+		// 		t.FailNow()
+		// 	}
+
+		// default:
+		// 	t.Fatalf("code='%s'\ttest.want does not have a test function. got=%T", code, test.want)
+		// }
+	}
+}
+
 func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) {
 	isLiteral, literal := assertLiteral(exp, ast.NewLiteralExpression(expectedValue))
 	if !isLiteral {
@@ -627,4 +757,121 @@ func testAssignment(exp ast.Expression, expected *ast.Assignment, t *testing.T) 
 	}
 
 	return true
+}
+
+func testLetStmt(stmt ast.Statement, want *ast.LetStmt, t *testing.T) bool {
+	let, isOk := stmt.(*ast.LetStmt)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.LetStmt. got='%T'", stmt)
+		return false
+	}
+
+	if let.Name.Lexeme != want.Name.Lexeme {
+		want, got := want.Name.Lexeme, let.Name.Lexeme
+		t.Errorf("wrong value for let.Name. expected='%s' got='%s'", want, got)
+		return false
+	}
+
+	if let.Value.String() != want.Value.String() {
+		want, got := want.Value, let.Value
+		t.Errorf("wrong value for let.Value. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testPrintStmt(stmt ast.Statement, want *ast.PrintStmt, t *testing.T) bool {
+	print, isOk := stmt.(*ast.PrintStmt)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.PrintStmt. got='%T'", stmt)
+		return false
+	}
+
+	if print.Exp.String() != want.Exp.String() {
+		want, got := want.Exp, print.Exp
+		t.Errorf("wrong value for print.Exp. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testExprStmt(stmt ast.Statement, want *ast.ExpressionStmt, t *testing.T) bool {
+	expr, isOk := stmt.(*ast.ExpressionStmt)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.ExpressionStmt. got='%T'", stmt)
+		return false
+	}
+
+	if expr.Exp.String() != want.Exp.String() {
+		want, got := want.Exp, expr.Exp
+		t.Errorf("wrong value for expr.Exp. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testBlockStmt(stmt ast.Statement, want *ast.BlockStmt, t *testing.T) bool {
+	block, isOk := stmt.(*ast.BlockStmt)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.BlockStmt. got='%T'", stmt)
+		return false
+	}
+
+	if len(block.Stmts) != len(want.Stmts) {
+		want, got := len(want.Stmts), len(block.Stmts)
+		t.Errorf("wrong number of statements in block. expected='%d' got='%d'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testIfStmt(stmt ast.Statement, want *ast.IfStmt, t *testing.T) bool {
+	ifStmt, isOk := stmt.(*ast.IfStmt)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.IfStmt. got='%T'", stmt)
+		return false
+	}
+
+	if ifStmt.Condition.String() != want.Condition.String() {
+		want, got := want.Condition, ifStmt.Condition
+		t.Errorf("wrong value for ifStmt.Condition. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if ifStmt.Then != want.Then {
+		want, got := want.Then, ifStmt.Then
+		t.Errorf("wrong value for ifStmt.Then. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if ifStmt.OrElse != want.OrElse {
+		want, got := want.OrElse, ifStmt.OrElse
+		t.Errorf("wrong value for ifStmt.Else. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
+	switch want := want.(type) {
+	case *ast.LetStmt:
+		return testLetStmt(stmt, want, t)
+	case *ast.PrintStmt:
+		return testPrintStmt(stmt, want, t)
+	case *ast.ExpressionStmt:
+		return testExprStmt(stmt, want, t)
+	case *ast.BlockStmt:
+		return testBlockStmt(stmt, want, t)
+	case *ast.IfStmt:
+		return testIfStmt(stmt, want, t)
+	default:
+		t.Fatalf("statement %T does not have a testing function. consider adding one", want)
+	}
+
+	return false
 }
