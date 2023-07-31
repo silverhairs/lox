@@ -70,7 +70,7 @@ func TestTokenize(t *testing.T) {
 		{token.TRUE, "true"},
 		{token.BANG_EQ, "!="},
 		{token.FALSE, "false"},
-		{token.COMMENT_L, "// this is a comment"},
+		{token.SLASH_SLASH, "// this is a comment"},
 		{token.THIS, "this"},
 		{token.DOT, "."},
 		{token.IDENTIFIER, "name"},

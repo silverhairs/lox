@@ -251,7 +251,7 @@ func (s *Lexer) slash() error {
 			s.advance()
 		}
 		literal := s.Source[s.start+2 : s.current]
-		s.addToken(token.COMMENT_L, literal)
+		s.addToken(token.SLASH_SLASH, literal)
 
 	} else if s.match('*') {
 		for s.peek() != '*' && !s.isAtEnd() {
@@ -260,7 +260,7 @@ func (s *Lexer) slash() error {
 
 		if s.match('/') {
 			literal := s.Source[s.start+2 : s.current-2]
-			s.addToken(token.COMMENT_B, literal)
+			s.addToken(token.SLASK_ASTERISK, literal)
 		} else {
 			return exception.Short(s.line, "opened multi-line comment has not been closed.")
 		}
