@@ -49,4 +49,26 @@ func TestPrint(t *testing.T) {
 
 	}
 
+	exp := &fakeExp{}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatalf("accepted expressions that does not return a string")
+		}
+	}()
+	printer.Print(exp)
+}
+
+type fakeExp struct{}
+
+func (exp *fakeExp) String() string {
+	return "(fake expression)"
+}
+
+func (exp *fakeExp) Type() ExpType {
+	var res ExpType = "fake"
+	return res
+}
+
+func (exp *fakeExp) Accept(Visitor) any {
+	return 12
 }
