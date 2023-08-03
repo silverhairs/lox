@@ -83,10 +83,13 @@ func (p *Parser) letDeclaration() (ast.Statement, error) {
 	var val ast.Expression
 	if p.match(token.EQUAL) {
 		val, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if _, e := p.consume(token.SEMICOLON, "expect ';' after variable declaration."); e != nil {
-		err = e
+	if _, err = p.consume(token.SEMICOLON, "expect ';' after variable declaration."); e != nil {
+		return nil, err
 	}
 	return ast.NewLetStmt(tok, val), err
 }
