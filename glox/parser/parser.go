@@ -124,8 +124,8 @@ func (p *Parser) printStatement() (ast.Statement, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, e := p.consume(token.SEMICOLON, "expect ';' after value."); e != nil {
-		err = e
+	if _, err = p.consume(token.SEMICOLON, "expect ';' after value."); err != nil {
+		return nil, err
 	}
 	return ast.NewPrintStmt(exp), err
 
@@ -136,8 +136,8 @@ func (p *Parser) expressionStatement() (ast.Statement, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, e := p.consume(token.SEMICOLON, "expect ';' after value."); e != nil {
-		err = e
+	if _, err = p.consume(token.SEMICOLON, "expect ';' after value."); err != nil {
+		return nil, err
 	}
 	return ast.NewExprStmt(exp), err
 }
