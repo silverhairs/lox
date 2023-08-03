@@ -7,9 +7,6 @@ import (
 	"strconv"
 )
 
-// Workaround to represent `nil` as a byte. Equivalent of `\0` in java.
-const NULL = '#'
-
 type Lexer struct {
 	Source  string
 	tokens  []token.Token
@@ -166,7 +163,7 @@ func (s *Lexer) operator(props struct {
 
 func (s *Lexer) peek() byte {
 	if s.isAtEnd() {
-		return NULL
+		return '\000'
 	}
 	return s.Source[s.current]
 }
@@ -221,7 +218,7 @@ func isDigit(ch byte) bool {
 
 func (s *Lexer) peekNext() byte {
 	if s.current+1 >= len(s.Source) {
-		return NULL
+		return '\000'
 	}
 
 	return s.Source[s.current+1]
