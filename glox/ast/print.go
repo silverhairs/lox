@@ -45,3 +45,7 @@ func (p *printer) VisitVariable(variable *Variable) any {
 func (p *printer) VisitAssignment(assign *Assignment) any {
 	return assign.String()
 }
+
+func (p *printer) VisitLogical(exp *Logical) any {
+	return exp.String()
+}

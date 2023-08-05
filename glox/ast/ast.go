@@ -9,13 +9,15 @@ import (
 type ExpType string
 
 const (
-	BINARY_EXP     ExpType = "binary"
-	UNARY_EXP      ExpType = "unary"
-	GROUP_EXP      ExpType = "group"
-	LITERAL_EXP    ExpType = "literal"
-	TERNARY_EXP    ExpType = "ternary"
-	VARIABLE_EXP   ExpType = "variable"
-	ASSIGNMENT_EXP ExpType = "assignment"
+	BINARY_EXP      ExpType = "binary"
+	UNARY_EXP       ExpType = "unary"
+	GROUP_EXP       ExpType = "group"
+	LITERAL_EXP     ExpType = "literal"
+	TERNARY_EXP     ExpType = "ternary"
+	VARIABLE_EXP    ExpType = "variable"
+	ASSIGNMENT_EXP  ExpType = "assignment"
+	LOGICAL_OR_EXP  ExpType = "logical_or"
+	LOGICAL_AND_EXP ExpType = "logical_and"
 )
 
 type Expression interface {
@@ -32,6 +34,7 @@ type Visitor interface {
 	VisitTernary(exp *Ternary) any
 	VisitVariable(exp *Variable) any
 	VisitAssignment(exp *Assignment) any
+	VisitLogical(exp *Logical) any
 }
 
 type Literal struct {
@@ -216,6 +219,41 @@ func (exp *Assignment) String() string {
 
 func (exp *Assignment) Accept(v Visitor) any {
 	return v.VisitAssignment(exp)
+}
+
+type Logical struct {
+	Left     Expression
+	Operator token.Token
+	Right    Expression
+}
+
+func NewLogical(left Expression, op token.Token, right Expression) *Logical {
+	if !(op.Type == token.AND || op.Type == token.OR) {
+		panic(fmt.Sprintf("token '%v' cannot be used for logical expressions.", op))
+	}
+	return &Logical{Left: left, Operator: op, Right: right}
+}
+
+func (exp *Logical) Type() ExpType {
+	if exp.Operator.Type == token.AND {
+		return LOGICAL_AND_EXP
+	} else if exp.Operator.Type == token.OR {
+		return LOGICAL_OR_EXP
+	}
+
+	panic(fmt.Sprintf("token '%v' cannot be used for logical expressions.", exp.Operator))
+}
+
+func (exp *Logical) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(exp.Left.String() + " " + string(exp.Operator.Type) + " ")
+	out.WriteString(exp.Right.String())
+	return parenthesize(exp.Type(), out.String())
+}
+
+func (exp *Logical) Accept(v Visitor) any {
+	return v.VisitLogical(exp)
 }
 
 func parenthesize(name ExpType, value string) string {

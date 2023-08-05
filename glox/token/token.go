@@ -65,7 +65,7 @@ type Token struct {
 }
 
 var keywords = map[string]TokenType{
-	"&&":     AND,
+	"and":    AND,
 	"class":  CLASS,
 	"else":   ELSE,
 	"false":  FALSE,
@@ -74,7 +74,7 @@ var keywords = map[string]TokenType{
 	"fn":     FUNCTION,
 	"if":     IF,
 	"nil":    NIL,
-	"||":     OR,
+	"or":     OR,
 	"print":  PRINT,
 	"return": RETURN,
 	"super":  SUPER,

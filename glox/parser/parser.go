@@ -147,7 +147,7 @@ func (p *Parser) expression() (ast.Expression, error) {
 }
 
 func (p *Parser) assignment() (ast.Expression, error) {
-	exp, err := p.ternary()
+	exp, err := p.logicOr()
 
 	if p.match(token.EQUAL) {
 		equals := p.previous()
@@ -166,21 +166,56 @@ func (p *Parser) assignment() (ast.Expression, error) {
 	return exp, err
 }
 
+func (p *Parser) logicOr() (ast.Expression, error) {
+	exp, err := p.logicAnd()
+	if err != nil {
+		return exp, err
+	}
+	for p.match(token.OR) {
+		operator := p.previous()
+		right, err := p.logicAnd()
+		if err != nil {
+			return exp, err
+		}
+		exp = ast.NewLogical(exp, operator, right)
+	}
+
+	return exp, err
+}
+
+func (p *Parser) logicAnd() (ast.Expression, error) {
+	exp, err := p.ternary()
+	if err != nil {
+		return exp, err
+	}
+
+	for p.match(token.OR) {
+		operator := p.previous()
+		right, err := p.ternary()
+		if err != nil {
+			return right, err
+		}
+		exp = ast.NewLogical(exp, operator, right)
+	}
+
+	return exp, err
+}
+
 func (p *Parser) ternary() (ast.Expression, error) {
 	exp, err := p.equality()
 
 	for p.match(token.QUESTION_MARK) {
 		left := p.previous()
-		positive, e := p.equality()
-		if e != nil {
-			err = e
+		positive, err := p.equality()
+		if err != nil {
+			return exp, err
 		}
 
 		for p.match(token.COLON) {
 			right := p.previous()
-			negative, e := p.ternary()
-			if e != nil {
-				err = e
+			negative, err := p.ternary()
+			if err != nil {
+				return exp, err
 			}
 
 			exp = ast.NewTernaryConditional(exp, left, positive, right, negative)
@@ -196,9 +231,9 @@ func (p *Parser) equality() (ast.Expression, error) {
 
 	for p.match(token.BANG_EQ, token.EQ_EQ) {
 		operator := p.previous()
-		right, e := p.comparison()
+		right, err := p.comparison()
 		if err != nil {
-			err = e
+			return exp, err
 		}
 		exp = ast.NewBinaryExpression(exp, operator, right)
 	}
@@ -265,9 +300,9 @@ func (p *Parser) term() (ast.Expression, error) {
 
 	for p.match(token.MINUS, token.PLUS) {
 		operator := p.previous()
-		right, e := p.factor()
-		if e != nil {
-			err = e
+		right, err := p.factor()
+		if err != nil {
+			return exp, err
 		}
 		exp = ast.NewBinaryExpression(exp, operator, right)
 	}
@@ -283,9 +318,9 @@ func (p *Parser) factor() (ast.Expression, error) {
 
 	for p.match(token.SLASH, token.ASTERISK) {
 		operator := p.previous()
-		right, e := p.unary()
-		if e != nil {
-			err = e
+		right, err := p.unary()
+		if err != nil {
+			return exp, err
 		}
 		exp = ast.NewBinaryExpression(exp, operator, right)
 	}
@@ -294,13 +329,12 @@ func (p *Parser) factor() (ast.Expression, error) {
 }
 
 func (p *Parser) unary() (ast.Expression, error) {
-	var err error
 
 	if p.match(token.BANG, token.MINUS) {
 		operator := p.previous()
-		right, e := p.unary()
-		if e != nil {
-			err = e
+		right, err := p.unary()
+		if err != nil {
+			return right, err
 		}
 		return ast.NewUnaryExpression(operator, right), err
 	}

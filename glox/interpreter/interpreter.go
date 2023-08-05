@@ -255,6 +255,25 @@ func (i *Interpreter) VisitAssignment(exp *ast.Assignment) any {
 	return val
 }
 
+func (i *Interpreter) VisitLogical(exp *ast.Logical) any {
+	left := i.evaluate(exp.Left)
+	if err, isErr := left.(error); isErr {
+		return err
+	}
+
+	if exp.Operator.Type == token.OR {
+		if isTruthy(left) {
+			return left
+		}
+	} else {
+		if !isTruthy(left) {
+			return left
+		}
+	}
+
+	return isTruthy(i.evaluate(exp.Right))
+}
+
 func (i *Interpreter) evaluate(exp ast.Expression) any {
 	return exp.Accept(i)
 }

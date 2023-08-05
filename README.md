@@ -5,11 +5,15 @@
 ## [WIP]
 
 ## Quick Start
+
 > Source files are not yet supported... will handle this later. Currently the safest way to play with the interpreter is using the REPL.
+
 ---
+
 You have two options to run the REPL, you can either install the latest released binary, or you can clone the repo locally and run the `main.go` file.
 
 ### Using Release Binary
+
 The script below will download the latest released binary in your system and request for execution permission, once granted, you can start the REPL by executing the command `./glox` in the directory where you ran the script.
 
 ```sh
@@ -22,17 +26,20 @@ curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releas
 ```
 
 **About the released binary**:
- * You need to have [cURL](https://curl.se/) installed in your system for the above script to work.
- * I don't have a specific release schedule, I just cut a new release whenever a major feature has been implemented.
- * Currently the latest release only holds binaries for macos and linux, if you have windows... idk what to tell yah (seek help i guess). I will include windows later in the release workflow though, I just need to get a windows computer to test.
+
+- You need to have [cURL](https://curl.se/) installed in your system for the above script to work.
+- I don't have a specific release schedule, I just cut a new release whenever a major feature has been implemented.
+- Currently the latest release only holds binaries for macos and linux, if you have windows... idk what to tell yah (seek help i guess). I will include windows later in the release workflow though, I just need to get a windows computer to test.
 
 ### Using source code
+
 1. Clone the repo
 2. Navigate to `crafting-interpreters/glox` (command: `cd ./glox`)
 3. Run the main.go file (command: `go run main.go`)
 
 **Requirements**:
- * You need to have Go installed in your system
+
+- You need to have Go installed in your system
 
 ## Grammar
 
@@ -70,7 +77,9 @@ Production rules:
 ```
 
 ## Example code snippet
+
 > For now the interpreter does not handle source files, so this is to be done in the REPL (line by line).
+
 ```js
 let age = 15;
 let is_adult = age >= 18;
@@ -89,4 +98,5 @@ if (is_adult){
  }
 print age;
 ```
+
 </samp>
