@@ -622,33 +622,64 @@ func ParseStatement(t *testing.T) {
 }
 
 func TestParseLogical(t *testing.T) {
-	code := `true or false;`
-	lxr := lexer.New(code)
-	tokens, err := lxr.Tokenize()
-	if err != nil {
-		t.Fatalf("failed to tokenize code `%s`", code)
+	tests := []struct {
+		code string
+		want *ast.Logical
+	}{
+		{
+			code: `true or false;`,
+			want: ast.NewLogical(
+				ast.NewLiteralExpression(true),
+				token.Token{Type: token.OR, Lexeme: "or", Line: 1},
+				ast.NewLiteralExpression(false),
+			),
+		},
+		{
+			code: `true and false;`,
+			want: ast.NewLogical(
+				ast.NewLiteralExpression(true),
+				token.Token{Type: token.AND, Lexeme: "and", Line: 1},
+				ast.NewLiteralExpression(false),
+			),
+		},
+		{
+			code: `true or false and true;`,
+			want: ast.NewLogical(
+				ast.NewLiteralExpression(true),
+				token.Token{Type: token.OR, Lexeme: "or", Line: 1},
+				ast.NewLogical(
+					ast.NewLiteralExpression(false),
+					token.Token{Type: token.AND, Lexeme: "and", Line: 1},
+					ast.NewLiteralExpression(true),
+				),
+			),
+		},
 	}
-	prsr := New(tokens)
-	stmts, err := prsr.Parse()
-	if err != nil {
-		t.Fatalf("failed to parse code `%s`", code)
-	}
-	if len(stmts) != 1 {
-		t.Fatalf("wrong number of statements. expected=1 got=%d", len(stmts))
-	}
-	stmt, isOk := stmts[0].(*ast.ExpressionStmt)
-	if !isOk {
-		t.Fatalf("stmts[0] is not a *ast.ExpressionStmt. got=%T", stmts[0])
-	}
-	exp, isOk := stmt.Exp.(*ast.Logical)
-	if !isOk {
-		t.Fatalf("stmt.Exp is not a *ast.Logical got=%T", stmt.Exp)
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("failed to tokenize code `%s`", code)
+		}
+		prsr := New(tokens)
+		stmts, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("failed to parse code `%s`", code)
+		}
+		if len(stmts) != 1 {
+			t.Fatalf("wrong number of statements. expected=1 got=%d", len(stmts))
+		}
+		stmt, isOk := stmts[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("stmts[0] is not a *ast.ExpressionStmt. got=%T", stmts[0])
+		}
+		if isOk := testLogical(stmt.Exp, test.want, t); !isOk {
+			t.Errorf("testLogical failed for '%s'", code)
+			t.FailNow()
+		}
 	}
 
-	testLiteral(exp.Left, ast.NewLiteralExpression(true), t)
-	if exp.Operator.Type != token.OR {
-		t.Fatalf("wrong operator. expected=`%v` got=`%v`", token.OR, exp.Operator.Type)
-	}
 }
 
 func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) {
@@ -870,4 +901,32 @@ func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 	}
 
 	return false
+}
+
+func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
+	logical, isOk := stmt.(*ast.Logical)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.Logical. got='%T'", stmt)
+		return false
+	}
+
+	if logical.Operator.Lexeme != want.Operator.Lexeme {
+		want, got := want.Operator, logical.Operator
+		t.Errorf("wrong value for logical.Operator. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if logical.Left.String() != want.Left.String() {
+		want, got := want.Left, logical.Left
+		t.Errorf("wrong value for logical.Left. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if logical.Right.String() != want.Right.String() {
+		want, got := want.Right, logical.Right
+		t.Errorf("wrong value for logical.Right. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
 }
