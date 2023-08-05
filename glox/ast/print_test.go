@@ -37,6 +37,16 @@ func TestPrint(t *testing.T) {
 			Name:  token.Token{Type: token.IDENTIFIER, Lexeme: "number", Line: 1},
 			Value: NewLiteralExpression(12),
 		},
+		&Logical{
+			Left:     &Literal{Value: true},
+			Operator: token.Token{Type: token.AND, Lexeme: "and", Line: 1},
+			Right:    &Literal{Value: false},
+		},
+		&Logical{
+			Left:     &Literal{Value: true},
+			Operator: token.Token{Type: token.OR, Lexeme: "or", Line: 1},
+			Right:    &Literal{Value: false},
+		},
 	}
 	printer := NewPrinter()
 
