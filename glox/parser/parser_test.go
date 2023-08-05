@@ -621,6 +621,36 @@ func ParseStatement(t *testing.T) {
 	}
 }
 
+func TestParseLogical(t *testing.T) {
+	code := `true or false;`
+	lxr := lexer.New(code)
+	tokens, err := lxr.Tokenize()
+	if err != nil {
+		t.Fatalf("failed to tokenize code `%s`", code)
+	}
+	prsr := New(tokens)
+	stmts, err := prsr.Parse()
+	if err != nil {
+		t.Fatalf("failed to parse code `%s`", code)
+	}
+	if len(stmts) != 1 {
+		t.Fatalf("wrong number of statements. expected=1 got=%d", len(stmts))
+	}
+	stmt, isOk := stmts[0].(*ast.ExpressionStmt)
+	if !isOk {
+		t.Fatalf("stmts[0] is not a *ast.ExpressionStmt. got=%T", stmts[0])
+	}
+	exp, isOk := stmt.Exp.(*ast.Logical)
+	if !isOk {
+		t.Fatalf("stmt.Exp is not a *ast.Logical got=%T", stmt.Exp)
+	}
+
+	testLiteral(exp.Left, ast.NewLiteralExpression(true), t)
+	if exp.Operator.Type != token.OR {
+		t.Fatalf("wrong operator. expected=`%v` got=`%v`", token.OR, exp.Operator.Type)
+	}
+}
+
 func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) {
 	isLiteral, literal := assertLiteral(exp, ast.NewLiteralExpression(expectedValue))
 	if !isLiteral {

@@ -24,10 +24,9 @@ func (p *Parser) program() ([]ast.Statement, error) {
 	var err error
 
 	for !p.isAtEnd() {
-		stmt, e := p.declaration()
-		if e != nil {
-			err = e
-			break
+		stmt, err := p.declaration()
+		if err != nil {
+			return stmts, err
 		}
 		stmts = append(stmts, stmt)
 	}
@@ -60,9 +59,9 @@ func (p *Parser) ifStatement() (ast.Statement, error) {
 		return nil, err
 	}
 
-	then, e := p.statement()
-	if e != nil {
-		return nil, e
+	then, err := p.statement()
+	if err != nil {
+		return nil, err
 	}
 	var orElse ast.Statement
 
@@ -109,9 +108,9 @@ func (p *Parser) block() ([]ast.Statement, error) {
 	stmts := []ast.Statement{}
 	var err error
 	for !p.check(token.R_BRACE) && !p.isAtEnd() {
-		stmt, e := p.declaration()
+		stmt, err := p.declaration()
 		if err != nil {
-			return stmts, e
+			return stmts, err
 		}
 		stmts = append(stmts, stmt)
 	}
@@ -189,7 +188,7 @@ func (p *Parser) logicAnd() (ast.Expression, error) {
 		return exp, err
 	}
 
-	for p.match(token.OR) {
+	for p.match(token.AND) {
 		operator := p.previous()
 		right, err := p.ternary()
 		if err != nil {

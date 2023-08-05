@@ -30,6 +30,8 @@ func TestTokenize(t *testing.T) {
 	3.14
 	"string with
 		many lines"
+	and
+	or
 	`
 
 	tests := []struct {
@@ -92,6 +94,8 @@ func TestTokenize(t *testing.T) {
 		{token.NUMBER, "3.14"},
 		{token.STRING, `"string with
 		many lines"`},
+		{token.AND, "and"},
+		{token.OR, "or"},
 		{token.EOF, ""},
 	}
 
