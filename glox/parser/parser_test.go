@@ -4,6 +4,7 @@ import (
 	"glox/ast"
 	"glox/lexer"
 	"glox/token"
+	"strings"
 	"testing"
 )
 
@@ -11,7 +12,11 @@ func TestParseTernary(t *testing.T) {
 	code := ` 15 > 1 ? "abc" : "123";`
 
 	lxr := lexer.New(code)
-	prsr := New(lxr.Tokenize())
+	tokens, err := lxr.Tokenize()
+	if err != nil {
+		t.Fatalf("Scanning failed with exception='%v'", err.Error())
+	}
+	prsr := New(tokens)
 
 	program, err := prsr.Parse()
 	if err != nil {
@@ -59,70 +64,621 @@ func TestParseTernary(t *testing.T) {
 }
 
 func TestParseUnary(t *testing.T) {
-	code := `!true;`
-	lxr := lexer.New(code)
-	prsr := New(lxr.Tokenize())
+	tests := []struct {
+		code string
+		want *ast.Unary
+	}{
+		{
+			code: `!true;`,
+			want: ast.NewUnaryExpression(
+				token.Token{Type: token.BANG, Lexeme: "!", Line: 1},
+				ast.NewLiteralExpression(true),
+			),
+		},
+		{
+			code: "-1;",
+			want: ast.NewUnaryExpression(
+				token.Token{Type: token.MINUS, Lexeme: "-", Line: 1},
+				ast.NewLiteralExpression(1),
+			),
+		},
+		{
+			code: `!false;`,
+			want: ast.NewUnaryExpression(
+				token.Token{Type: token.BANG, Lexeme: "!", Line: 1},
+				ast.NewLiteralExpression(false),
+			),
+		},
+	}
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := New(tokens)
 
-	program, err := prsr.Parse()
-	if err != nil {
-		t.Fatalf("Parsing errors caught: %v", err.Error())
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("Parsing errors caught: %v", err.Error())
+		}
+
+		if len(program) != 1 {
+			t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+		}
+
+		stmt, isOk := program[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+		}
+
+		expr := stmt.Exp
+
+		if passed := testUnary(expr, test.want, t); !passed {
+			t.Errorf("testUnary failed for '%s'", code)
+			t.FailNow()
+		}
 	}
 
-	if len(program) != 1 {
-		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
-	}
-
-	stmt, isOk := program[0].(*ast.ExpressionStmt)
-	if !isOk {
-		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
-	}
-
-	expr := stmt.Exp
-
-	unary, isUnary := expr.(*ast.Unary)
-	if !isUnary {
-		t.Fatalf("result is not *ast.Unary. got=%T", expr)
-	}
-
-	if unary.Operator.Type != token.BANG {
-		t.Fatalf("exp.Operator.Type is not token.BANG. got=%q", string(unary.Operator.Type))
-	}
-
-	testLiteral(unary.Right, "true", t)
 }
 
 func TestParseBinary(t *testing.T) {
-	code := `5 + 10;`
+	tests := []struct {
+		code string
+		want *ast.Binary
+	}{
+		{
+			code: "5+10;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(5),
+				token.Token{Type: token.PLUS, Lexeme: "+", Line: 1},
+				ast.NewLiteralExpression(10),
+			),
+		},
+		{
+			code: "5==12;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(5),
+				token.Token{Type: token.EQ_EQ, Lexeme: "==", Line: 1},
+				ast.NewLiteralExpression(12),
+			),
+		},
+		{
+			code: "true != false;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(true),
+				token.Token{Type: token.BANG_EQ, Lexeme: "!=", Line: 1},
+				ast.NewLiteralExpression(false),
+			),
+		},
+		{
+			code: "13 > 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(13),
+				token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+
+		{
+			code: "13 >= 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(13),
+				token.Token{Type: token.GREATER_EQ, Lexeme: ">=", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+		{
+			code: "87 < 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(87),
+				token.Token{Type: token.LESS, Lexeme: "<", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		}, {
+			code: "87 <= 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(87),
+				token.Token{Type: token.LESS_EQ, Lexeme: "<=", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+		{
+			code: " 12 * 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(12),
+				token.Token{Type: token.ASTERISK, Lexeme: "*", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+		{
+			code: " 12 / 90;",
+			want: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(12),
+				token.Token{Type: token.SLASH, Lexeme: "/", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+	}
+
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := New(tokens)
+
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("Parsing errors caught: %v", err.Error())
+		}
+
+		if len(program) != 1 {
+			t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+		}
+
+		stmt, isOk := program[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+		}
+
+		expr := stmt.Exp
+		if passed := testBinary(expr, test.want, t); !passed {
+			t.Errorf("testBinary failed for '%s'", code)
+			t.FailNow()
+		}
+	}
+}
+
+func TestParseGrouping(t *testing.T) {
+	tests := []struct {
+		code string
+		exp  ast.Expression
+	}{
+		{
+			code: "(5+10);",
+			exp: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(5),
+				token.Token{Type: token.PLUS, Lexeme: "+", Line: 1},
+				ast.NewLiteralExpression(10),
+			),
+		},
+		{
+			code: "(5==12);",
+			exp: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(5),
+				token.Token{Type: token.EQ_EQ, Lexeme: "==", Line: 1},
+				ast.NewLiteralExpression(12),
+			),
+		},
+		{
+			code: "(true != false);",
+			exp: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(true),
+				token.Token{Type: token.BANG_EQ, Lexeme: "!=", Line: 1},
+				ast.NewLiteralExpression(false),
+			),
+		},
+		{
+			code: "(13 > 90);",
+			exp: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(13),
+				token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+
+		{
+			code: "(13 >= 90);",
+			exp: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(13),
+				token.Token{Type: token.GREATER_EQ, Lexeme: ">=", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+		{
+			code: "(87 < 90);",
+			exp: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(87),
+				token.Token{Type: token.LESS, Lexeme: "<", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		}, {
+			code: "(87 <= 90);",
+			exp: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(87),
+				token.Token{Type: token.LESS_EQ, Lexeme: "<=", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+		{
+			code: "(12 * 90);",
+			exp: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(12),
+				token.Token{Type: token.ASTERISK, Lexeme: "*", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+		{
+			code: "(12 / 90);",
+			exp: ast.NewBinaryExpression(
+				ast.NewLiteralExpression(12),
+				token.Token{Type: token.SLASH, Lexeme: "/", Line: 1},
+				ast.NewLiteralExpression(90),
+			),
+		},
+		{
+			code: `(!true);`,
+			exp: ast.NewUnaryExpression(
+				token.Token{Type: token.BANG, Lexeme: "!", Line: 1},
+				ast.NewLiteralExpression(true),
+			),
+		},
+		{
+			code: "(-1);",
+			exp: ast.NewUnaryExpression(
+				token.Token{Type: token.MINUS, Lexeme: "-", Line: 1},
+				ast.NewLiteralExpression(1),
+			),
+		},
+		{
+			code: `(!false);`,
+			exp: ast.NewUnaryExpression(
+				token.Token{Type: token.BANG, Lexeme: "!", Line: 1},
+				ast.NewLiteralExpression(false),
+			),
+		},
+	}
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := New(tokens)
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("Parsing errors caught: %v", err.Error())
+		}
+
+		if len(program) != 1 {
+			t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+		}
+
+		smt, isOk := program[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+		}
+
+		exp := smt.Exp
+		group, isGroup := exp.(*ast.Grouping)
+		if !isGroup {
+			t.Fatalf("exp is not *ast.Grouping. got=%T", exp)
+		}
+		if group.Exp.String() != test.exp.String() {
+			t.Fatalf("wrong group.Exp expected='%v'. got='%v'", test.exp, group.Exp)
+		}
+	}
+	code := `(5+10;`
 	lxr := lexer.New(code)
-	prsr := New(lxr.Tokenize())
-
-	program, err := prsr.Parse()
+	tokens, err := lxr.Tokenize()
 	if err != nil {
-		t.Fatalf("Parsing errors caught: %v", err.Error())
+		t.Fatalf("Scanning failed with exception='%v'", err.Error())
+	}
+	prsr := New(tokens)
+	_, err = prsr.Parse()
+	if err == nil {
+		t.Fatalf("Parsing should have caught an error on code='%s'", code)
 	}
 
-	if len(program) != 1 {
-		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+	chunk := "expected ')' after expression"
+	got := err.Error()
+	if !strings.Contains(got, chunk) {
+		t.Fatalf("exception message wrong. expected to contain='%s' but got='%s'", chunk, got)
+	}
+}
+
+func TestParseVariable(t *testing.T) {
+	tests := []struct {
+		code string
+		want *ast.Variable
+	}{
+		{
+			code: "maybe_12;",
+			want: ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "maybe_12", Line: 1}),
+		},
+
+		{
+			code: "random_value;",
+			want: ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "random_value", Line: 1}),
+		},
 	}
 
-	stmt, isOk := program[0].(*ast.ExpressionStmt)
-	if !isOk {
-		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+	for _, test := range tests {
+		lxr := lexer.New(test.code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := New(tokens)
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("code:'%v'\tParsing errors caught: %v", test.code, err.Error())
+		}
+		if len(program) != 1 {
+			t.Fatalf("code:'%v'\tprogram has wrong number of statements. expected=%d got=%d", test.code, 1, len(program))
+		}
+		smt, isOk := program[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("code:'%v'\tprogram[0] is not *ast.ExpressionStmt. got=%T", test.code, program[0])
+		}
+
+		exp, isOk := smt.Exp.(*ast.Variable)
+		if !isOk {
+			t.Fatalf("code:'%v'\t smt.Exp is not *ast.Variable. got=%T", test.code, smt.Exp)
+		}
+		if passed := testVariable(exp, test.want, t); !passed {
+			t.Errorf("testVariable failed for '%s'", test.code)
+			t.FailNow()
+		}
+	}
+}
+
+func ParseAssignment(t *testing.T) {
+	tests := []struct {
+		code string
+		want *ast.Assignment
+	}{
+		{
+			code: "maybe_12 = 12;",
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "maybe_12", Line: 1},
+				ast.NewLiteralExpression(12),
+			),
+		},
+		{
+			code: `the_name = "John";`,
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "the_name", Line: 1},
+				ast.NewLiteralExpression("John"),
+			),
+		},
+		{
+			code: `can_drink = 12 >= 18? true: false;`,
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "can_drink", Line: 1},
+				ast.NewTernaryConditional(
+					ast.NewBinaryExpression(
+						ast.NewLiteralExpression(12),
+						token.Token{Type: token.GREATER_EQ, Lexeme: ">=", Line: 1},
+						ast.NewLiteralExpression(18),
+					),
+					token.Token{Type: token.QUESTION_MARK, Lexeme: "?", Line: 1},
+					ast.NewLiteralExpression(true),
+					token.Token{Type: token.COLON, Lexeme: ":", Line: 1},
+					ast.NewLiteralExpression(false),
+				),
+			),
+		},
+		{
+			code: `negative = -1;`,
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "negative", Line: 1},
+				ast.NewUnaryExpression(
+					token.Token{Type: token.MINUS, Lexeme: "-", Line: 1},
+					ast.NewLiteralExpression(1),
+				),
+			),
+		},
+		{
+			code: `twelve = 6*2;`,
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "twelve", Line: 1},
+				ast.NewBinaryExpression(
+					ast.NewLiteralExpression(6),
+					token.Token{Type: token.ASTERISK, Lexeme: "*", Line: 1},
+					ast.NewLiteralExpression(2),
+				),
+			),
+		},
+		{
+			code: `var_reference = twelve;`,
+			want: ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "var_reference", Line: 1},
+				ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "twelve", Line: 1}),
+			),
+		},
 	}
 
-	expr := stmt.Exp
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("code='%s'\tScanning failed with exception='%v'", code, err.Error())
+		}
+		prsr := New(tokens)
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("code='%s'\tParsing errors caught: %v", code, err.Error())
+		}
+		if len(program) != 1 {
+			t.Fatalf("code='%s'\tprogram has wrong number of statements. expected=%d got=%d", code, 1, len(program))
+		}
+		smt, isOk := program[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("code='%s'\tprogram[0] is not *ast.ExpressionStmt. got=%T", code, program[0])
+		}
+		expr, isOk := smt.Exp.(*ast.Assignment)
+		if !isOk {
+			t.Fatalf("code='%s'\t smt.Exp is not *ast.Assignment. got=%T", code, smt.Exp)
+		}
 
-	binary, isBinary := expr.(*ast.Binary)
-	if !isBinary {
-		t.Fatalf("parsed expression is not *ast.Binary. got=%T", expr)
+		if passed := testAssignment(expr, test.want, t); !passed {
+			t.Errorf("testAssignment failed for '%s'", code)
+			t.FailNow()
+		}
+	}
+}
+
+func ParseStatement(t *testing.T) {
+	tests := []struct {
+		code string
+		want ast.Statement
+	}{
+		{
+			code: "var maybe_12 = 12;",
+			want: ast.NewLetStmt(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "maybe_12", Line: 1},
+				ast.NewLiteralExpression(12),
+			),
+		},
+		{
+			code: `print "John";`,
+			want: ast.NewPrintStmt(
+				ast.NewLiteralExpression("John"),
+			),
+		},
+		{
+			code: `12;`,
+			want: ast.NewExprStmt(
+				ast.NewLiteralExpression(12),
+			),
+		},
+		{
+			code: `{ 12; }`,
+			want: ast.NewBlockStmt(
+				[]ast.Statement{
+					ast.NewExprStmt(ast.NewLiteralExpression(12)),
+				},
+			),
+		},
+		{
+			code: `if (12 > 10) { print "yes"; }`,
+			want: ast.NewIfStmt(
+				ast.NewBinaryExpression(
+					ast.NewLiteralExpression(12),
+					token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+					ast.NewLiteralExpression(10),
+				),
+				ast.NewBlockStmt(
+					[]ast.Statement{
+						ast.NewPrintStmt(ast.NewLiteralExpression("yes")),
+					},
+				),
+				nil,
+			),
+		},
+		{
+			code: `if (12 > 10) { print "yes"; } else { print "no"; }`,
+			want: ast.NewIfStmt(
+				ast.NewBinaryExpression(
+					ast.NewLiteralExpression(12),
+					token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+					ast.NewLiteralExpression(10),
+				),
+				ast.NewBlockStmt(
+					[]ast.Statement{
+						ast.NewPrintStmt(ast.NewLiteralExpression("yes")),
+					},
+				),
+				ast.NewBlockStmt(
+					[]ast.Statement{
+						ast.NewPrintStmt(ast.NewLiteralExpression("no")),
+					},
+				),
+			),
+		},
 	}
 
-	testLiteral(binary.Left, "5", t)
-	if binary.Operator.Type != token.PLUS {
-		t.Fatalf("exp.Operator.Type is not token.PLUS. got=%q", string(binary.Operator.Type))
-	}
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("code='%s'\tScanning failed with exception='%v'", code, err.Error())
+		}
+		prsr := New(tokens)
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("code='%s'\tParsing errors caught: %v", code, err.Error())
+		}
 
-	testLiteral(binary.Right, "10", t)
+		if len(program) != 1 {
+			t.Fatalf("code='%s'\tprogram has wrong number of statements. expected=%d got=%d", code, 1, len(program))
+		}
+
+		stmt := program[0]
+
+		if passed := testStmt(stmt, test.want, t); !passed {
+			t.Errorf("testStmt failed for '%s'", code)
+			t.FailNow()
+		}
+	}
+}
+
+func TestParseLogical(t *testing.T) {
+	tests := []struct {
+		code string
+		want *ast.Logical
+	}{
+		{
+			code: `true or false;`,
+			want: ast.NewLogical(
+				ast.NewLiteralExpression(true),
+				token.Token{Type: token.OR, Lexeme: "or", Line: 1},
+				ast.NewLiteralExpression(false),
+			),
+		},
+		{
+			code: `true and false;`,
+			want: ast.NewLogical(
+				ast.NewLiteralExpression(true),
+				token.Token{Type: token.AND, Lexeme: "and", Line: 1},
+				ast.NewLiteralExpression(false),
+			),
+		},
+		{
+			code: `true or false and true;`,
+			want: ast.NewLogical(
+				ast.NewLiteralExpression(true),
+				token.Token{Type: token.OR, Lexeme: "or", Line: 1},
+				ast.NewLogical(
+					ast.NewLiteralExpression(false),
+					token.Token{Type: token.AND, Lexeme: "and", Line: 1},
+					ast.NewLiteralExpression(true),
+				),
+			),
+		},
+	}
+	for _, test := range tests {
+		code := test.code
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("failed to tokenize code `%s`", code)
+		}
+		prsr := New(tokens)
+		stmts, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("failed to parse code `%s`", code)
+		}
+		if len(stmts) != 1 {
+			t.Fatalf("wrong number of statements. expected=1 got=%d", len(stmts))
+		}
+		stmt, isOk := stmts[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("stmts[0] is not a *ast.ExpressionStmt. got=%T", stmts[0])
+		}
+		if isOk := testLogical(stmt.Exp, test.want, t); !isOk {
+			t.Errorf("testLogical failed for '%s'", code)
+			t.FailNow()
+		}
+	}
 
 }
 
@@ -143,4 +699,234 @@ func assertLiteral(exp ast.Expression, expected *ast.Literal) (bool, *ast.Litera
 		return false, nil
 	}
 	return true, expected
+}
+
+func testBinary(exp ast.Expression, expected *ast.Binary, t *testing.T) bool {
+	binary, isOk := exp.(*ast.Binary)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Binary. got='%T'", exp)
+		return false
+	}
+
+	if binary.Left.String() != expected.Left.String() {
+		want, got := expected.Left, binary.Left
+		t.Errorf("wrong value for binary.Left. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if binary.Operator.Lexeme != expected.Operator.Lexeme {
+		want, got := expected.Operator.Lexeme, binary.Operator.Lexeme
+		t.Errorf("wrong value for binary.Operator. expected='%s' got='%s'", want, got)
+		return false
+	}
+
+	if binary.Right.String() != expected.Right.String() {
+		want, got := expected.Right, binary.Right
+		t.Errorf("wrong value for binary.Right. expected='%v' got='%v'", want, got)
+		return false
+	}
+	return true
+}
+
+func testUnary(exp ast.Expression, expected *ast.Unary, t *testing.T) bool {
+	unary, isOk := exp.(*ast.Unary)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Unary. got='%T'", exp)
+		return false
+	}
+
+	if unary.Operator.Lexeme != expected.Operator.Lexeme {
+		want, got := expected.Operator, unary.Operator
+		t.Errorf("wrong value for unary.Operator. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if unary.Right.String() != expected.Right.String() {
+		want, got := expected.Right, unary.Right
+		t.Errorf("wrong value for unary.Right. expected='%v' got='%v'", want, got)
+		return false
+	}
+	return true
+}
+
+func testVariable(exp ast.Expression, expected *ast.Variable, t *testing.T) bool {
+	variable, isOk := exp.(*ast.Variable)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Variable. got='%T'", exp)
+		return false
+	}
+
+	if variable.Name.Lexeme != expected.Name.Lexeme {
+		want, got := expected.Name.Lexeme, variable.Name.Lexeme
+		t.Errorf("wrong value for variable.Name. expected='%v' got='%v'", want, got)
+		return false
+	}
+	return true
+}
+
+func testAssignment(exp ast.Expression, expected *ast.Assignment, t *testing.T) bool {
+	assign, isOk := exp.(*ast.Assignment)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Assignment. got='%T'", exp)
+		return false
+	}
+
+	if assign.Name.Lexeme != expected.Name.Lexeme {
+		want, got := expected.Name.Lexeme, assign.Name.Lexeme
+		t.Errorf("wrong value for assign.Name. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if assign.Value.String() != expected.Value.String() {
+		want, got := expected.Value, assign.Value
+		t.Errorf("wrong value for assign.Value. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testLetStmt(stmt ast.Statement, want *ast.LetStmt, t *testing.T) bool {
+	let, isOk := stmt.(*ast.LetStmt)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.LetStmt. got='%T'", stmt)
+		return false
+	}
+
+	if let.Name.Lexeme != want.Name.Lexeme {
+		want, got := want.Name.Lexeme, let.Name.Lexeme
+		t.Errorf("wrong value for let.Name. expected='%s' got='%s'", want, got)
+		return false
+	}
+
+	if let.Value.String() != want.Value.String() {
+		want, got := want.Value, let.Value
+		t.Errorf("wrong value for let.Value. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testPrintStmt(stmt ast.Statement, want *ast.PrintStmt, t *testing.T) bool {
+	print, isOk := stmt.(*ast.PrintStmt)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.PrintStmt. got='%T'", stmt)
+		return false
+	}
+
+	if print.Exp.String() != want.Exp.String() {
+		want, got := want.Exp, print.Exp
+		t.Errorf("wrong value for print.Exp. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testExprStmt(stmt ast.Statement, want *ast.ExpressionStmt, t *testing.T) bool {
+	expr, isOk := stmt.(*ast.ExpressionStmt)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.ExpressionStmt. got='%T'", stmt)
+		return false
+	}
+
+	if expr.Exp.String() != want.Exp.String() {
+		want, got := want.Exp, expr.Exp
+		t.Errorf("wrong value for expr.Exp. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testBlockStmt(stmt ast.Statement, want *ast.BlockStmt, t *testing.T) bool {
+	block, isOk := stmt.(*ast.BlockStmt)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.BlockStmt. got='%T'", stmt)
+		return false
+	}
+
+	if len(block.Stmts) != len(want.Stmts) {
+		want, got := len(want.Stmts), len(block.Stmts)
+		t.Errorf("wrong number of statements in block. expected='%d' got='%d'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testIfStmt(stmt ast.Statement, want *ast.IfStmt, t *testing.T) bool {
+	ifStmt, isOk := stmt.(*ast.IfStmt)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.IfStmt. got='%T'", stmt)
+		return false
+	}
+
+	if ifStmt.Condition.String() != want.Condition.String() {
+		want, got := want.Condition, ifStmt.Condition
+		t.Errorf("wrong value for ifStmt.Condition. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if ifStmt.Then != want.Then {
+		want, got := want.Then, ifStmt.Then
+		t.Errorf("wrong value for ifStmt.Then. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if ifStmt.OrElse != want.OrElse {
+		want, got := want.OrElse, ifStmt.OrElse
+		t.Errorf("wrong value for ifStmt.Else. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
+	switch want := want.(type) {
+	case *ast.LetStmt:
+		return testLetStmt(stmt, want, t)
+	case *ast.PrintStmt:
+		return testPrintStmt(stmt, want, t)
+	case *ast.ExpressionStmt:
+		return testExprStmt(stmt, want, t)
+	case *ast.BlockStmt:
+		return testBlockStmt(stmt, want, t)
+	case *ast.IfStmt:
+		return testIfStmt(stmt, want, t)
+	default:
+		t.Fatalf("statement %T does not have a testing function. consider adding one", want)
+	}
+
+	return false
+}
+
+func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
+	logical, isOk := stmt.(*ast.Logical)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.Logical. got='%T'", stmt)
+		return false
+	}
+
+	if logical.Operator.Lexeme != want.Operator.Lexeme {
+		want, got := want.Operator, logical.Operator
+		t.Errorf("wrong value for logical.Operator. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if logical.Left.String() != want.Left.String() {
+		want, got := want.Left, logical.Left
+		t.Errorf("wrong value for logical.Left. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if logical.Right.String() != want.Right.String() {
+		want, got := want.Right, logical.Right
+		t.Errorf("wrong value for logical.Right. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
 }

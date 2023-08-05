@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"glox/token"
+	"strings"
 	"testing"
 )
 
@@ -21,6 +22,16 @@ func TestTokenize(t *testing.T) {
 	this.name
 	super.person
 	true ? 5 : 10
+	,
+	~=
+	*=
+	"ariverderci"
+	nil
+	3.14
+	"string with
+		many lines"
+	and
+	or
 	`
 
 	tests := []struct {
@@ -61,7 +72,7 @@ func TestTokenize(t *testing.T) {
 		{token.TRUE, "true"},
 		{token.BANG_EQ, "!="},
 		{token.FALSE, "false"},
-		{token.COMMENT_L, "// this is a comment"},
+		{token.SLASH_SLASH, "// this is a comment"},
 		{token.THIS, "this"},
 		{token.DOT, "."},
 		{token.IDENTIFIER, "name"},
@@ -73,11 +84,26 @@ func TestTokenize(t *testing.T) {
 		{token.NUMBER, "5"},
 		{token.COLON, ":"},
 		{token.NUMBER, "10"},
+		{token.COMMA, ","},
+		{token.ILLEGAL, "~"},
+		{token.EQUAL, "="},
+		{token.ASTERISK, "*"},
+		{token.EQUAL, "="},
+		{token.STRING, `"ariverderci"`},
+		{token.NIL, "nil"},
+		{token.NUMBER, "3.14"},
+		{token.STRING, `"string with
+		many lines"`},
+		{token.AND, "and"},
+		{token.OR, "or"},
 		{token.EOF, ""},
 	}
 
 	l := New(input)
-	tokens := l.Tokenize()
+	tokens, err := l.Tokenize()
+	if err != nil {
+		t.Fatalf("failed to scan code. gote error='%s'", err.Error())
+	}
 
 	if len(tokens) != len(tests) {
 		t.Fatalf("Wrong number of tokens. expected: %d got %d", len(tests), len(tokens))
@@ -92,6 +118,16 @@ func TestTokenize(t *testing.T) {
 
 		if tok.Lexeme != testTok.expectedLexeme {
 			t.Fatalf("wrong lexeme at test %d. expected %q got %q", i, testTok.expectedLexeme, tok.Lexeme)
+		}
+	}
+
+	input = `"`
+	l = New(input)
+	if _, got := l.Tokenize(); got == nil {
+		t.Fatalf("failed to capture lexing error in code '%s'", input)
+	} else {
+		if !strings.Contains(got.Error(), "Please add a double-quote at the end of the string") {
+			t.Fatalf("wrong error message. got='%s'", got.Error())
 		}
 	}
 

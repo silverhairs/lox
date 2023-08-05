@@ -17,23 +17,38 @@ func TestInterpret(t *testing.T) {
 	x := rand.Float64()
 	y := rand.Float64()
 	fixtures := map[string]string{
-		"1+1":                             "2",
-		"!false":                          "true",
-		"!true":                           "false",
-		fmt.Sprintf("%v + %v", x, y):      fmt.Sprintf("%v", x+y),
-		`"the number is"+1`:               "the number is1",
-		`12+" is the number"`:             "12 is the number",
-		`"hello world"`:                   "hello world",
-		`(12+5*76/2)`:                     "202",
-		"1==1.0000001":                    "false",
-		`"yes" != "Yes"`:                  "true",
-		`1>2?"1 is bigger":"2 is bigger"`: "2 is bigger",
+		"print 1+1;":                        "2",
+		"print !false;":                     "true",
+		"print !true;":                      "false",
+		fmt.Sprintf("print %v + %v;", x, y): fmt.Sprintf("%v", x+y),
+		`print "the number is"+1;`:          "the number is1",
+		`print 12+" is the number";`:        "12 is the number",
+		`print "hello world";`:              "hello world",
+		`print (12+5*76/2);`:                "202",
+		"print 1==1.0000001;":               "false",
+		`print "yes" != "Yes";`:             "true",
+		`let x = 1>2? "1 is bigger":"2 is bigger"; print x;`: "2 is bigger",
+		`true and false;`:  "false",
+		`true or false;`:   "true",
+		`12 and false;`:    "false",
+		`12 or false;`:     "12",
+		`!true and false;`: "false",
+		`!false and true;`: "true",
+		`!false or true;`:  "true",
+		`let age = 12; if(age>0 and age<18){ print "minor"; }`:                                     "minor",
+		`let age = 19; if(age>0 and age<18){ print "minor"; } else { print "adult"; }`:             "adult",
+		`let age = 21; if(age>18 or age > 21){ print "can drink"; }`:                               "can drink",
+		`let age = 17; if(age>18 or age > 21){ print "can drink"; } else { print "can't drink"; }`: "can't drink",
 	}
 
 	for code, expected := range fixtures {
 
-		lxr := lexer.New(fmt.Sprintf("print %s;", code))
-		prsr := parser.New(lxr.Tokenize())
+		lxr := lexer.New(code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := parser.New(tokens)
 		intrprtr := New(stderr, stdout)
 
 		if expr, err := prsr.Parse(); err != nil {
@@ -75,7 +90,11 @@ func TestInterpret(t *testing.T) {
 
 	for code, chunks := range failures {
 		lxr := lexer.New(code)
-		prsr := parser.New(lxr.Tokenize())
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := parser.New(tokens)
 
 		if expr, err := prsr.Parse(); err != nil {
 			t.Fatalf("failed to parse code %q", code)
@@ -126,7 +145,11 @@ func TestInterpret(t *testing.T) {
 
 	for _, variable := range vars {
 		lxr := lexer.New(variable.code)
-		prsr := parser.New(lxr.Tokenize())
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+		}
+		prsr := parser.New(tokens)
 
 		stmts, err := prsr.Parse()
 		if err != nil {

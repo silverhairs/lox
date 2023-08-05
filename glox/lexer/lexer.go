@@ -7,9 +7,6 @@ import (
 	"strconv"
 )
 
-// Workaround to represent `nil` as a byte. Equivalent of `\0` in java.
-const NULL = '#'
-
 type Lexer struct {
 	Source  string
 	tokens  []token.Token
@@ -28,18 +25,19 @@ func New(Source string) *Lexer {
 	}
 }
 
-func (lxr *Lexer) Tokenize() []token.Token {
-
+func (lxr *Lexer) Tokenize() ([]token.Token, error) {
+	var err error
 	for !lxr.isAtEnd() {
 		lxr.start = lxr.current
-		lxr.lex()
+		err = lxr.lex()
 	}
 
 	lxr.tokens = append(lxr.tokens, token.Token{Type: token.EOF, Literal: nil, Lexeme: "", Line: lxr.line})
-	return lxr.tokens
+	return lxr.tokens, err
 }
 
-func (s *Lexer) lex() {
+func (s *Lexer) lex() error {
+	var err error
 	char := s.advance()
 
 	switch char {
@@ -97,7 +95,7 @@ func (s *Lexer) lex() {
 		}{'=', token.GREATER, token.GREATER_EQ},
 		)
 	case '/':
-		s.slash()
+		err = s.slash()
 	case ' ':
 	case '\r':
 	case '\t':
@@ -105,16 +103,18 @@ func (s *Lexer) lex() {
 	case '\n':
 		s.line++
 	case '"':
-		s.string()
+		err = s.string()
 	default:
 		if isDigit(char) {
-			s.number()
+			err = s.number()
 		} else if isAlpha(char) {
 			s.identifier()
 		} else {
 			s.addToken(token.ILLEGAL, s.peek())
 		}
 	}
+
+	return err
 }
 
 func (s *Lexer) isAtEnd() bool {
@@ -163,13 +163,13 @@ func (s *Lexer) operator(props struct {
 
 func (s *Lexer) peek() byte {
 	if s.isAtEnd() {
-		return NULL
+		return '\000'
 	}
 	return s.Source[s.current]
 }
 
 // tokenizes a string literal.
-func (s *Lexer) string() {
+func (s *Lexer) string() error {
 	for s.peek() != '"' && !s.isAtEnd() {
 		if s.peek() == '\n' {
 			// Multi-line string literals are allowed
@@ -179,18 +179,19 @@ func (s *Lexer) string() {
 	}
 
 	if s.isAtEnd() {
-		exception.Short(s.line, "Please add a double-quote at the end of the string.")
-		return
+		return exception.Short(s.line, "Please add a double-quote at the end of the string.")
+
 	}
 
 	s.advance()
 
 	value := s.Source[s.start+1 : s.current-1]
 	s.addToken(token.STRING, value)
+	return nil
 }
 
 // Scans number literals, this handles all floating-point numbers with or without decimals.
-func (s *Lexer) number() {
+func (s *Lexer) number() error {
 	for isDigit(s.peek()) {
 		s.advance()
 	}
@@ -204,10 +205,11 @@ func (s *Lexer) number() {
 	literal := s.Source[s.start:s.current]
 	value, err := strconv.ParseFloat(literal, 64)
 	if err != nil {
-		exception.Short(s.line, fmt.Sprintf("%q is an invalid %q", literal, token.NUMBER))
-		return
+		return exception.Short(s.line, fmt.Sprintf("%q is an invalid %q", literal, token.NUMBER))
+
 	}
 	s.addToken(token.NUMBER, value)
+	return nil
 }
 
 func isDigit(ch byte) bool {
@@ -216,7 +218,7 @@ func isDigit(ch byte) bool {
 
 func (s *Lexer) peekNext() byte {
 	if s.current+1 >= len(s.Source) {
-		return NULL
+		return '\000'
 	}
 
 	return s.Source[s.current+1]
@@ -240,13 +242,13 @@ func (s *Lexer) identifier() {
 	s.addTokenType(tok)
 }
 
-func (s *Lexer) slash() {
+func (s *Lexer) slash() error {
 	if s.match('/') {
 		for s.peek() != '\n' && !s.isAtEnd() {
 			s.advance()
 		}
 		literal := s.Source[s.start+2 : s.current]
-		s.addToken(token.COMMENT_L, literal)
+		s.addToken(token.SLASH_SLASH, literal)
 
 	} else if s.match('*') {
 		for s.peek() != '*' && !s.isAtEnd() {
@@ -255,12 +257,13 @@ func (s *Lexer) slash() {
 
 		if s.match('/') {
 			literal := s.Source[s.start+2 : s.current-2]
-			s.addToken(token.COMMENT_B, literal)
+			s.addToken(token.SLASK_ASTERISK, literal)
 		} else {
-			exception.Short(s.line, "opened multi-line comment has not been closed.")
+			return exception.Short(s.line, "opened multi-line comment has not been closed.")
 		}
 
 	} else {
 		s.addTokenType(token.SLASH)
 	}
+	return nil
 }

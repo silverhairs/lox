@@ -24,10 +24,9 @@ func (p *Parser) program() ([]ast.Statement, error) {
 	var err error
 
 	for !p.isAtEnd() {
-		stmt, e := p.declaration()
-		if e != nil {
-			err = e
-			break
+		stmt, err := p.declaration()
+		if err != nil {
+			return stmts, err
 		}
 		stmts = append(stmts, stmt)
 	}
@@ -37,10 +36,41 @@ func (p *Parser) program() ([]ast.Statement, error) {
 }
 
 func (p *Parser) declaration() (ast.Statement, error) {
-	if p.match(token.LET) {
+	if p.match(token.IF) {
+		return p.ifStatement()
+	} else if p.match(token.LET) {
 		return p.letDeclaration()
 	}
 	return p.statement()
+}
+
+func (p *Parser) ifStatement() (ast.Statement, error) {
+	var err error
+	_, err = p.consume(token.L_PAREN, "expected '(' after 'if'.")
+	if err != nil {
+		return nil, err
+	}
+	condition, e := p.expression()
+	if e != nil {
+		return nil, e
+	}
+	_, err = p.consume(token.R_PAREN, "expected ')' after if condition")
+	if err != nil {
+		return nil, err
+	}
+
+	then, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+	var orElse ast.Statement
+
+	if p.match(token.ELSE) {
+		orElse, err = p.statement()
+	}
+
+	return ast.NewIfStmt(condition, then, orElse), err
+
 }
 
 func (p *Parser) letDeclaration() (ast.Statement, error) {
@@ -52,10 +82,13 @@ func (p *Parser) letDeclaration() (ast.Statement, error) {
 	var val ast.Expression
 	if p.match(token.EQUAL) {
 		val, err = p.expression()
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if _, e := p.consume(token.SEMICOLON, "expect ';' after variable declaration."); e != nil {
-		err = e
+	if _, err = p.consume(token.SEMICOLON, "expect ';' after variable declaration."); err != nil {
+		return nil, err
 	}
 	return ast.NewLetStmt(tok, val), err
 }
@@ -75,9 +108,9 @@ func (p *Parser) block() ([]ast.Statement, error) {
 	stmts := []ast.Statement{}
 	var err error
 	for !p.check(token.R_BRACE) && !p.isAtEnd() {
-		stmt, e := p.declaration()
+		stmt, err := p.declaration()
 		if err != nil {
-			return stmts, e
+			return stmts, err
 		}
 		stmts = append(stmts, stmt)
 	}
@@ -87,8 +120,11 @@ func (p *Parser) block() ([]ast.Statement, error) {
 
 func (p *Parser) printStatement() (ast.Statement, error) {
 	exp, err := p.expression()
-	if _, e := p.consume(token.SEMICOLON, "expect ';' after value."); e != nil {
-		err = e
+	if err != nil {
+		return nil, err
+	}
+	if _, err = p.consume(token.SEMICOLON, "expect ';' after value."); err != nil {
+		return nil, err
 	}
 	return ast.NewPrintStmt(exp), err
 
@@ -96,8 +132,11 @@ func (p *Parser) printStatement() (ast.Statement, error) {
 
 func (p *Parser) expressionStatement() (ast.Statement, error) {
 	exp, err := p.expression()
-	if _, e := p.consume(token.SEMICOLON, "expect ';' after value."); e != nil {
-		err = e
+	if err != nil {
+		return nil, err
+	}
+	if _, err = p.consume(token.SEMICOLON, "expect ';' after value."); err != nil {
+		return nil, err
 	}
 	return ast.NewExprStmt(exp), err
 }
@@ -107,7 +146,7 @@ func (p *Parser) expression() (ast.Expression, error) {
 }
 
 func (p *Parser) assignment() (ast.Expression, error) {
-	exp, err := p.ternary()
+	exp, err := p.logicOr()
 
 	if p.match(token.EQUAL) {
 		equals := p.previous()
@@ -126,21 +165,56 @@ func (p *Parser) assignment() (ast.Expression, error) {
 	return exp, err
 }
 
+func (p *Parser) logicOr() (ast.Expression, error) {
+	exp, err := p.logicAnd()
+	if err != nil {
+		return exp, err
+	}
+	for p.match(token.OR) {
+		operator := p.previous()
+		right, err := p.logicAnd()
+		if err != nil {
+			return exp, err
+		}
+		exp = ast.NewLogical(exp, operator, right)
+	}
+
+	return exp, err
+}
+
+func (p *Parser) logicAnd() (ast.Expression, error) {
+	exp, err := p.ternary()
+	if err != nil {
+		return exp, err
+	}
+
+	for p.match(token.AND) {
+		operator := p.previous()
+		right, err := p.ternary()
+		if err != nil {
+			return right, err
+		}
+		exp = ast.NewLogical(exp, operator, right)
+	}
+
+	return exp, err
+}
+
 func (p *Parser) ternary() (ast.Expression, error) {
 	exp, err := p.equality()
 
 	for p.match(token.QUESTION_MARK) {
 		left := p.previous()
-		positive, e := p.equality()
-		if e != nil {
-			err = e
+		positive, err := p.equality()
+		if err != nil {
+			return exp, err
 		}
 
 		for p.match(token.COLON) {
 			right := p.previous()
-			negative, e := p.ternary()
-			if e != nil {
-				err = e
+			negative, err := p.ternary()
+			if err != nil {
+				return exp, err
 			}
 
 			exp = ast.NewTernaryConditional(exp, left, positive, right, negative)
@@ -156,9 +230,9 @@ func (p *Parser) equality() (ast.Expression, error) {
 
 	for p.match(token.BANG_EQ, token.EQ_EQ) {
 		operator := p.previous()
-		right, e := p.comparison()
+		right, err := p.comparison()
 		if err != nil {
-			err = e
+			return exp, err
 		}
 		exp = ast.NewBinaryExpression(exp, operator, right)
 	}
@@ -225,9 +299,9 @@ func (p *Parser) term() (ast.Expression, error) {
 
 	for p.match(token.MINUS, token.PLUS) {
 		operator := p.previous()
-		right, e := p.factor()
-		if e != nil {
-			err = e
+		right, err := p.factor()
+		if err != nil {
+			return exp, err
 		}
 		exp = ast.NewBinaryExpression(exp, operator, right)
 	}
@@ -243,9 +317,9 @@ func (p *Parser) factor() (ast.Expression, error) {
 
 	for p.match(token.SLASH, token.ASTERISK) {
 		operator := p.previous()
-		right, e := p.unary()
-		if e != nil {
-			err = e
+		right, err := p.unary()
+		if err != nil {
+			return exp, err
 		}
 		exp = ast.NewBinaryExpression(exp, operator, right)
 	}
@@ -254,13 +328,12 @@ func (p *Parser) factor() (ast.Expression, error) {
 }
 
 func (p *Parser) unary() (ast.Expression, error) {
-	var err error
 
 	if p.match(token.BANG, token.MINUS) {
 		operator := p.previous()
-		right, e := p.unary()
-		if e != nil {
-			err = e
+		right, err := p.unary()
+		if err != nil {
+			return right, err
 		}
 		return ast.NewUnaryExpression(operator, right), err
 	}
@@ -284,7 +357,7 @@ func (p *Parser) primary() (ast.Expression, error) {
 			return exp, err
 		}
 
-		if _, e := p.consume(token.R_PAREN, "Expect ')' after expression"); e != nil {
+		if _, e := p.consume(token.R_PAREN, "expected ')' after expression"); e != nil {
 			err = e
 		}
 		return ast.NewGroupingExp(exp), err

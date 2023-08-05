@@ -66,7 +66,10 @@ func (r *Lox) StartREPL(stdin io.Reader) {
 func (r *Lox) run(src string, glox *interpreter.Interpreter) {
 	scnr := lexer.New(src)
 
-	tokens := scnr.Tokenize()
+	tokens, err := scnr.Tokenize()
+	if err != nil {
+		fmt.Fprintf(r.stdErr, "%v\n", err.Error())
+	}
 	prsr := parser.New(tokens)
 	exp, err := prsr.Parse()
 

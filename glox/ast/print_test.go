@@ -31,6 +31,22 @@ func TestPrint(t *testing.T) {
 			OrElseOperator: token.Token{Type: token.COLON, Lexeme: ":", Line: 1},
 			OrElse:         &Literal{Value: 2},
 		},
+		&Literal{Value: "yes"},
+		&Variable{Name: token.Token{Type: token.IDENTIFIER, Lexeme: "number", Line: 1}},
+		&Assignment{
+			Name:  token.Token{Type: token.IDENTIFIER, Lexeme: "number", Line: 1},
+			Value: NewLiteralExpression(12),
+		},
+		&Logical{
+			Left:     &Literal{Value: true},
+			Operator: token.Token{Type: token.AND, Lexeme: "and", Line: 1},
+			Right:    &Literal{Value: false},
+		},
+		&Logical{
+			Left:     &Literal{Value: true},
+			Operator: token.Token{Type: token.OR, Lexeme: "or", Line: 1},
+			Right:    &Literal{Value: false},
+		},
 	}
 	printer := NewPrinter()
 
@@ -43,4 +59,26 @@ func TestPrint(t *testing.T) {
 
 	}
 
+	exp := &fakeExp{}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatalf("accepted expressions that does not return a string")
+		}
+	}()
+	printer.Print(exp)
+}
+
+type fakeExp struct{}
+
+func (exp *fakeExp) String() string {
+	return "(fake expression)"
+}
+
+func (exp *fakeExp) Type() ExpType {
+	var res ExpType = "fake"
+	return res
+}
+
+func (exp *fakeExp) Accept(Visitor) any {
+	return 12
 }

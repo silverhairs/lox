@@ -7,6 +7,7 @@ type StmtVisitor interface {
 	VisitExprStmt(*ExpressionStmt) any
 	VisitLetStmt(*LetStmt) any
 	VisitBlockStmt(*BlockStmt) any
+	VisitIfStmt(*IfStmt) any
 }
 
 type Statement interface {
@@ -60,4 +61,18 @@ func NewBlockStmt(stmts []Statement) *BlockStmt {
 
 func (stmt *BlockStmt) Accept(v StmtVisitor) any {
 	return v.VisitBlockStmt(stmt)
+}
+
+type IfStmt struct {
+	Condition Expression
+	Then      Statement
+	OrElse    Statement
+}
+
+func NewIfStmt(cond Expression, then Statement, orelse Statement) *IfStmt {
+	return &IfStmt{Condition: cond, Then: then, OrElse: orelse}
+}
+
+func (stmt *IfStmt) Accept(v StmtVisitor) any {
+	return v.VisitIfStmt(stmt)
 }
