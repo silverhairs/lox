@@ -271,7 +271,7 @@ func (i *Interpreter) VisitLogical(exp *ast.Logical) any {
 		}
 	}
 
-	return isTruthy(i.evaluate(exp.Right))
+	return i.evaluate(exp.Right)
 }
 
 func (i *Interpreter) evaluate(exp ast.Expression) any {
