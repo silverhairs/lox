@@ -274,6 +274,19 @@ func (i *Interpreter) VisitLogical(exp *ast.Logical) any {
 	return i.evaluate(exp.Right)
 }
 
+func (i *Interpreter) VisitWhile(exp *ast.WhileStmt) any {
+	cond := i.evaluate(exp.Condition)
+	for isTruthy(cond) {
+		if err, isErr := cond.(error); isErr {
+			return err
+		}
+		i.execute(exp.Body)
+		cond = i.evaluate(exp.Condition)
+	}
+
+	return nil
+}
+
 func (i *Interpreter) evaluate(exp ast.Expression) any {
 	return exp.Accept(i)
 }
