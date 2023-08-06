@@ -132,12 +132,14 @@ func (i *Interpreter) VisitUnary(exp *ast.Unary) any {
 
 func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 	left := i.evaluate(exp.Left)
-	if err, isErr := left.(error); isErr {
-		return err
-	}
 	right := i.evaluate(exp.Right)
-	if err, isErr := right.(error); isErr {
-		return err
+
+	lErr, isLErr := right.(error)
+	rErr, isRErr := left.(error)
+	if isLErr && !isRErr {
+		return lErr
+	} else if isRErr && !isLErr {
+		return rErr
 	}
 
 	switch exp.Operator.Type {
