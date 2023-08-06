@@ -23,16 +23,21 @@ func New(stderr io.Writer, stdout io.Writer) *Interpreter {
 func (i *Interpreter) Interpret(stmts []ast.Statement) any {
 	var err error
 	for _, stmt := range stmts {
-		i.execute(stmt)
+		err = i.execute(stmt)
 	}
 	return err
 }
 
-func (i *Interpreter) execute(stmt ast.Statement) {
+// If an error occurs we both return it and pass it to the stderr. Ideally we would like only to pass it
+// to the stderr bur cause this method can be used by other methods, we will to inform them that an error
+// occured, thus returning the error also.
+func (i *Interpreter) execute(stmt ast.Statement) error {
 	val := stmt.Accept(i)
 	if err, isErr := val.(error); isErr {
 		fmt.Fprintf(i.StdErr, "%s\n", err.Error())
+		return err
 	}
+	return nil
 }
 
 func (i *Interpreter) VisitLetStmt(stmt *ast.LetStmt) any {
@@ -275,12 +280,17 @@ func (i *Interpreter) VisitLogical(exp *ast.Logical) any {
 }
 
 func (i *Interpreter) VisitWhile(exp *ast.WhileStmt) any {
+
 	cond := i.evaluate(exp.Condition)
+	if err, isErr := cond.(error); isErr {
+		return err
+	}
 	for isTruthy(cond) {
-		if err, isErr := cond.(error); isErr {
-			return err
+		if err := i.execute(exp.Body); err != nil {
+			// The error is already handled by `execute` so there is no need to
+			// return it.
+			break
 		}
-		i.execute(exp.Body)
 		cond = i.evaluate(exp.Condition)
 	}
 
