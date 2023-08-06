@@ -97,11 +97,33 @@ func (p *Parser) statement() (ast.Statement, error) {
 
 	if p.match(token.PRINT) {
 		return p.printStatement()
+	} else if p.match(token.WHILE) {
+		return p.while()
 	} else if p.match(token.L_BRACE) {
 		block, err := p.block()
 		return ast.NewBlockStmt(block), err
 	}
 	return p.expressionStatement()
+}
+
+func (p *Parser) while() (ast.Statement, error) {
+	_, err := p.consume(token.L_PAREN, "expected '(' afer 'while'.")
+	if err != nil {
+		return nil, err
+	}
+	cond, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(token.R_PAREN, "expected ')' after while loop's condition.")
+	if err != nil {
+		return nil, err
+	}
+	body, err := p.statement()
+	if err != nil {
+		return nil, err
+	}
+	return ast.NewWhileStmt(cond, body), err
 }
 
 func (p *Parser) block() ([]ast.Statement, error) {

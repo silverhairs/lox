@@ -428,7 +428,7 @@ func TestParseVariable(t *testing.T) {
 	}
 }
 
-func ParseAssignment(t *testing.T) {
+func TestParseAssignment(t *testing.T) {
 	tests := []struct {
 		code string
 		want *ast.Assignment
@@ -525,7 +525,7 @@ func ParseAssignment(t *testing.T) {
 	}
 }
 
-func ParseStatement(t *testing.T) {
+func TestParseStatement(t *testing.T) {
 	tests := []struct {
 		code string
 		want ast.Statement
@@ -680,6 +680,91 @@ func TestParseLogical(t *testing.T) {
 		}
 	}
 
+}
+
+func TestParseWhile(t *testing.T) {
+	tests := []struct {
+		code string
+		want *ast.WhileStmt
+	}{
+		{
+			code: `while(false){print "yes";}`,
+			want: ast.NewWhileStmt(
+				ast.NewLiteralExpression(false),
+				ast.NewBlockStmt(
+					[]ast.Statement{
+						ast.NewPrintStmt(ast.NewLiteralExpression("yes")),
+					},
+				),
+			),
+		},
+		{
+			code: `while(true)print "yes";`,
+			want: ast.NewWhileStmt(
+				ast.NewLiteralExpression(true),
+				ast.NewPrintStmt(ast.NewLiteralExpression("yes")),
+			),
+		},
+		{
+			code: `while(0>1 and 1==1){print "yes";}`,
+			want: ast.NewWhileStmt(
+				ast.NewLogical(
+					ast.NewBinaryExpression(
+						ast.NewLiteralExpression(0),
+						token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+						ast.NewLiteralExpression(1),
+					),
+					token.Token{Type: token.AND, Lexeme: "and", Line: 1},
+					ast.NewBinaryExpression(
+						ast.NewLiteralExpression(1),
+						token.Token{Type: token.EQ_EQ, Lexeme: "==", Line: 1},
+						ast.NewLiteralExpression(1),
+					),
+				),
+				ast.NewBlockStmt(
+					[]ast.Statement{
+						ast.NewPrintStmt(ast.NewLiteralExpression("yes")),
+					},
+				),
+			),
+		},
+		{
+			code: `while(0>1 or false)print "yes";`,
+			want: ast.NewWhileStmt(
+				ast.NewLogical(
+					ast.NewBinaryExpression(
+						ast.NewLiteralExpression(0),
+						token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+						ast.NewLiteralExpression(1),
+					),
+					token.Token{Type: token.OR, Lexeme: "or", Line: 1},
+					ast.NewLiteralExpression(false),
+				),
+				ast.NewPrintStmt(ast.NewLiteralExpression("yes")),
+			),
+		},
+	}
+
+	for _, test := range tests {
+		lxr := lexer.New(test.code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("failed to tokenize code `%s`", test.code)
+		}
+
+		prsr := New(tokens)
+		stmts, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("failed to parse code `%s`", test.code)
+		}
+		if len(stmts) != 1 {
+			t.Fatalf("wrong number of statements. expected=1 got=%d", len(stmts))
+		}
+		if !testWhile(stmts[0], test.want, t) {
+			t.Errorf("testWhile failed for '%s'", test.code)
+			t.FailNow()
+		}
+	}
 }
 
 func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) {
@@ -869,22 +954,18 @@ func testIfStmt(stmt ast.Statement, want *ast.IfStmt, t *testing.T) bool {
 		return false
 	}
 
-	if ifStmt.Then != want.Then {
-		want, got := want.Then, ifStmt.Then
-		t.Errorf("wrong value for ifStmt.Then. expected='%v' got='%v'", want, got)
-		return false
-	}
+	return testStmt(ifStmt.Then, want.Then, t) && testStmt(ifStmt.OrElse, want.OrElse, t)
 
-	if ifStmt.OrElse != want.OrElse {
-		want, got := want.OrElse, ifStmt.OrElse
-		t.Errorf("wrong value for ifStmt.Else. expected='%v' got='%v'", want, got)
-		return false
-	}
-
-	return true
 }
 
 func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
+	if want == nil {
+		if stmt != nil {
+			t.Errorf("wrong value for stmt. expected='nil' got='%v'", stmt)
+			return false
+		}
+		return true
+	}
 	switch want := want.(type) {
 	case *ast.LetStmt:
 		return testLetStmt(stmt, want, t)
@@ -896,11 +977,13 @@ func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 		return testBlockStmt(stmt, want, t)
 	case *ast.IfStmt:
 		return testIfStmt(stmt, want, t)
+	case *ast.WhileStmt:
+		return testWhile(stmt, want, t)
 	default:
-		t.Fatalf("statement %T does not have a testing function. consider adding one", want)
+		t.Errorf("statement %T does not have a testing function. consider adding one", want)
+		return false
 	}
 
-	return false
 }
 
 func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
@@ -929,4 +1012,18 @@ func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
 	}
 
 	return true
+}
+
+func testWhile(got ast.Statement, want *ast.WhileStmt, t *testing.T) bool {
+	while, isOk := got.(*ast.WhileStmt)
+	if !isOk {
+		t.Errorf("got is not a *ast.WhileStmt. got='%T'", got)
+		return false
+	}
+	if while.Condition.String() != want.Condition.String() {
+		t.Errorf("got wrong conditional expression. expected='%v' got='%v'", want.Condition.String(), while.Condition.String())
+		return false
+	}
+
+	return testStmt(while.Body, want.Body, t)
 }

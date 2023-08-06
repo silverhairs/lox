@@ -1,6 +1,8 @@
 package ast
 
-import "glox/token"
+import (
+	"glox/token"
+)
 
 type StmtVisitor interface {
 	VisitPrintStmt(*PrintStmt) any
@@ -8,6 +10,7 @@ type StmtVisitor interface {
 	VisitLetStmt(*LetStmt) any
 	VisitBlockStmt(*BlockStmt) any
 	VisitIfStmt(*IfStmt) any
+	VisitWhile(*WhileStmt) any
 }
 
 type Statement interface {
@@ -75,4 +78,17 @@ func NewIfStmt(cond Expression, then Statement, orelse Statement) *IfStmt {
 
 func (stmt *IfStmt) Accept(v StmtVisitor) any {
 	return v.VisitIfStmt(stmt)
+}
+
+type WhileStmt struct {
+	Condition Expression
+	Body      Statement
+}
+
+func NewWhileStmt(cond Expression, body Statement) *WhileStmt {
+	return &WhileStmt{Condition: cond, Body: body}
+}
+
+func (stmt *WhileStmt) Accept(v StmtVisitor) any {
+	return v.VisitWhile(stmt)
 }
