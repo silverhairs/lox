@@ -1017,7 +1017,7 @@ func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
 func testWhile(got ast.Statement, want *ast.WhileStmt, t *testing.T) bool {
 	while, isOk := got.(*ast.WhileStmt)
 	if !isOk {
-		t.Errorf("got is not a *ast.WhileStmt. got='%T'", got)
+		t.Errorf("got='%T' expected a *ast.WhileStmt.", got)
 		return false
 	}
 	if while.Condition.String() != want.Condition.String() {
