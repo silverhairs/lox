@@ -132,7 +132,13 @@ func (i *Interpreter) VisitUnary(exp *ast.Unary) any {
 
 func (i *Interpreter) VisitBinary(exp *ast.Binary) any {
 	left := i.evaluate(exp.Left)
+	if err, isErr := left.(error); isErr {
+		return err
+	}
 	right := i.evaluate(exp.Right)
+	if err, isErr := right.(error); isErr {
+		return err
+	}
 
 	switch exp.Operator.Type {
 	case token.GREATER:
@@ -282,6 +288,7 @@ func (i *Interpreter) VisitLogical(exp *ast.Logical) any {
 func (i *Interpreter) VisitWhile(exp *ast.WhileStmt) any {
 
 	cond := i.evaluate(exp.Condition)
+
 	if err, isErr := cond.(error); isErr {
 		return err
 	}

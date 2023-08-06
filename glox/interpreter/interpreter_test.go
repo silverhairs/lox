@@ -186,4 +186,37 @@ func TestInterpret(t *testing.T) {
 		stdout.Reset()
 	}
 
+	errors := []struct {
+		code     string
+		patterns []string
+	}{
+		{
+			code:     `while(num==10) print num;`,
+			patterns: []string{"RuntimeException", "undefined variable 'num'"},
+		},
+	}
+
+	for _, failure := range errors {
+		lxr := lexer.New(failure.code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("failed to tokenize code '%v'", failure.code)
+		}
+		stmts, err := parser.New(tokens).Parse()
+		if err != nil {
+			t.Fatalf("failed to parse code `%v`. got='%s'", failure.code, err.Error())
+		}
+		i := New(stderr, stdout)
+		i.Interpret(stmts)
+		got := stderr.String()
+		for _, pattern := range failure.patterns {
+			if !strings.Contains(got, pattern) {
+				t.Fatalf("%v ->failed to catch error. expected='%v' got='%v'", failure.code, pattern, got)
+			}
+		}
+
+		stderr.Reset()
+		stdout.Reset()
+	}
+
 }
