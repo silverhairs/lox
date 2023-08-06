@@ -44,6 +44,8 @@ func TestInterpret(t *testing.T) {
 		`let age = 19; if(age>0 and age<18){ print "minor"; } else { print "adult"; }`:             "adult",
 		`let age = 21; if(age>18 or age > 21){ print "can drink"; }`:                               "can drink",
 		`let age = 17; if(age>18 or age > 21){ print "can drink"; } else { print "can't drink"; }`: "can't drink",
+		`let count=0; while(count<1){count=count+1;}`:                                              "1",
+		`let count=0; while(count<5){count=count+1;}`:                                              "1\n2\n3\n4\n5",
 	}
 
 	for code, expected := range fixtures {
