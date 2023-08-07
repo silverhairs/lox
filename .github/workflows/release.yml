@@ -2,7 +2,7 @@ name: Glox Release
 on:
   push:
     branches:
-      - releases
+      - main
   workflow_dispatch:
 
 defaults:
