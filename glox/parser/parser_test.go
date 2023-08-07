@@ -593,6 +593,39 @@ func TestParseStatement(t *testing.T) {
 				),
 			),
 		},
+		{
+			code: `for(let i = 0; i < 10; i = i + 1) print i;`,
+			want: ast.NewBlockStmt(
+				[]ast.Statement{
+					ast.NewLetStmt(
+						token.Token{Type: token.IDENTIFIER, Lexeme: "i", Line: 1},
+						ast.NewLiteralExpression(0),
+					),
+					ast.NewWhileStmt(
+						ast.NewBinaryExpression(
+							ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "i", Line: 1}),
+							token.Token{Type: token.LESS, Lexeme: "<", Line: 1},
+							ast.NewLiteralExpression(10),
+						),
+						ast.NewBlockStmt(
+							[]ast.Statement{
+								ast.NewPrintStmt(ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "i", Line: 1})),
+								ast.NewExprStmt(
+									ast.NewAssignment(
+										token.Token{Type: token.IDENTIFIER, Lexeme: "i", Line: 1},
+										ast.NewBinaryExpression(
+											ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "i", Line: 1}),
+											token.Token{Type: token.PLUS, Lexeme: "+", Line: 1},
+											ast.NewLiteralExpression(1),
+										),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for _, test := range tests {
@@ -682,7 +715,7 @@ func TestParseLogical(t *testing.T) {
 
 }
 
-func TestParseWhile(t *testing.T) {
+func TestParseLoops(t *testing.T) {
 	tests := []struct {
 		code string
 		want *ast.WhileStmt

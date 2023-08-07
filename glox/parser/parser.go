@@ -94,8 +94,9 @@ func (p *Parser) letDeclaration() (ast.Statement, error) {
 }
 
 func (p *Parser) statement() (ast.Statement, error) {
-
-	if p.match(token.PRINT) {
+	if p.match(token.FOR) {
+		return p.forStatement()
+	} else if p.match(token.PRINT) {
 		return p.printStatement()
 	} else if p.match(token.WHILE) {
 		return p.while()
@@ -104,6 +105,68 @@ func (p *Parser) statement() (ast.Statement, error) {
 		return ast.NewBlockStmt(block), err
 	}
 	return p.expressionStatement()
+}
+
+func (p *Parser) forStatement() (ast.Statement, error) {
+	if _, err := p.consume(token.L_PAREN, "expect '(' after 'for'."); err != nil {
+		return nil, err
+	}
+	var initializer ast.Statement
+	var err error
+
+	// if it's a semi-conlon, we assume the initializer has been omitted
+	if p.match(token.SEMICOLON) {
+		initializer = nil
+	} else if p.match(token.LET) {
+		initializer, err = p.letDeclaration()
+	} else {
+		initializer, err = p.expressionStatement()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var condition ast.Expression
+	if !p.check(token.SEMICOLON) {
+		if condition, err = p.expression(); err != nil {
+			return nil, err
+		}
+	}
+
+	if _, err = p.consume(token.SEMICOLON, "expect ';' after the for-loop condition."); err != nil {
+		return nil, err
+	}
+
+	var protocol ast.Expression
+	if !p.check(token.R_PAREN) {
+		if protocol, err = p.expression(); err != nil {
+			return nil, err
+		}
+	}
+	if _, err = p.consume(token.R_PAREN, "expect ')' after the for-loop clauses."); err != nil {
+		return nil, err
+	}
+
+	body, err := p.statement()
+
+	if protocol != nil {
+		body = ast.NewBlockStmt(
+			[]ast.Statement{body, ast.NewExprStmt(protocol)},
+		)
+	}
+
+	// If the condition is omitted, we pass in true.
+	if condition == nil {
+		condition = ast.NewLiteralExpression(true)
+	}
+
+	body = ast.NewWhileStmt(condition, body)
+
+	if initializer != nil {
+		body = ast.NewBlockStmt([]ast.Statement{initializer, body})
+	}
+
+	return body, err
 }
 
 func (p *Parser) while() (ast.Statement, error) {
