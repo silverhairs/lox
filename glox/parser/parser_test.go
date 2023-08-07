@@ -715,7 +715,7 @@ func TestParseLogical(t *testing.T) {
 
 }
 
-func TestParseLoops(t *testing.T) {
+func TestParseWhile(t *testing.T) {
 	tests := []struct {
 		code string
 		want *ast.WhileStmt
