@@ -63,6 +63,61 @@ func TestParseTernary(t *testing.T) {
 
 }
 
+func TestParseLiteral(t *testing.T) {
+	tests := []struct {
+		code string
+		want ast.Literal
+	}{
+		{
+			code: `"john doe";`,
+			want: *ast.NewLiteralExpression("john doe"),
+		},
+		{
+			code: `5;`,
+			want: *ast.NewLiteralExpression(5),
+		},
+		{
+			code: `5.9797;`,
+			want: *ast.NewLiteralExpression(5.9797),
+		},
+		{
+			code: `false;`,
+			want: *ast.NewLiteralExpression(false),
+		},
+		{
+			code: `true;`,
+			want: *ast.NewLiteralExpression(true),
+		},
+		{
+			code: `nil;`,
+			want: *ast.NewLiteralExpression(nil),
+		},
+	}
+
+	for _, test := range tests {
+		lxr := lexer.New(test.code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("failed to tokenize code='%s' got error='%s'", test.code, err.Error())
+		}
+		prsr := New(tokens)
+		stmts, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("failed to parse code='%s' got error='%s'", test.code, err.Error())
+		}
+		if len(stmts) != 1 {
+			t.Fatalf("parsed into wrong number of statements. expected=1 got=%d", len(tokens))
+		}
+		stmt, isOk := stmts[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("`%v` -> stmts[0] is not a *ast.ExpressionStmt. got=%T", test.code, stmts[0])
+		}
+
+		testLiteral(stmt.Exp, test.want, t)
+
+	}
+}
+
 func TestParseUnary(t *testing.T) {
 	tests := []struct {
 		code string

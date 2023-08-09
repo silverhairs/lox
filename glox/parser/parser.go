@@ -433,7 +433,7 @@ func (p *Parser) primary() (ast.Expression, error) {
 	if p.match(token.TRUE) {
 		return ast.NewLiteralExpression(true), nil
 	}
-	if p.match(token.NUMBER, token.STRING) {
+	if p.match(token.NUMBER, token.STRING, token.NIL) {
 		return ast.NewLiteralExpression(p.previous().Literal), nil
 	}
 	if p.match(token.L_PAREN) {
