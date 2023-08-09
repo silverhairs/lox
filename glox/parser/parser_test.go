@@ -1020,13 +1020,7 @@ func testLetStmt(stmt ast.Statement, want *ast.LetStmt, t *testing.T) bool {
 		return false
 	}
 
-	if let.Value.String() != want.Value.String() {
-		want, got := want.Value, let.Value
-		t.Errorf("wrong value for let.Value. want='%v' got='%v'", want, got)
-		return false
-	}
-
-	return true
+	return testExpression(let.Value, want.Value, t)
 }
 
 func testPrintStmt(stmt ast.Statement, want *ast.PrintStmt, t *testing.T) bool {
@@ -1036,29 +1030,17 @@ func testPrintStmt(stmt ast.Statement, want *ast.PrintStmt, t *testing.T) bool {
 		return false
 	}
 
-	if print.Exp.String() != want.Exp.String() {
-		want, got := want.Exp, print.Exp
-		t.Errorf("wrong value for print.Exp. want='%v' got='%v'", want, got)
-		return false
-	}
-
-	return true
+	return testExpression(print.Exp, want.Exp, t)
 }
 
-func testExprStmt(stmt ast.Statement, want *ast.ExpressionStmt, t *testing.T) bool {
-	expr, isOk := stmt.(*ast.ExpressionStmt)
+func testExprStmt(got ast.Statement, want *ast.ExpressionStmt, t *testing.T) bool {
+	stmt, isOk := got.(*ast.ExpressionStmt)
 	if !isOk {
-		t.Errorf("stmt is not a *ast.ExpressionStmt. got='%T'", stmt)
+		t.Errorf("stmt is not a *ast.ExpressionStmt. got='%T'", got)
 		return false
 	}
 
-	if expr.Exp.String() != want.Exp.String() {
-		want, got := want.Exp, expr.Exp
-		t.Errorf("wrong value for expr.Exp. want='%v' got='%v'", want, got)
-		return false
-	}
-
-	return true
+	return testExpression(stmt.Exp, want.Exp, t)
 }
 
 func testBlockStmt(stmt ast.Statement, want *ast.BlockStmt, t *testing.T) bool {
@@ -1074,6 +1056,11 @@ func testBlockStmt(stmt ast.Statement, want *ast.BlockStmt, t *testing.T) bool {
 		return false
 	}
 
+	for i, stmt := range block.Stmts {
+		if !testStmt(stmt, want.Stmts[i], t) {
+			return false
+		}
+	}
 	return true
 }
 
@@ -1084,13 +1071,7 @@ func testIfStmt(stmt ast.Statement, want *ast.IfStmt, t *testing.T) bool {
 		return false
 	}
 
-	if ifStmt.Condition.String() != want.Condition.String() {
-		want, got := want.Condition, ifStmt.Condition
-		t.Errorf("wrong value for ifStmt.Condition. want='%v' got='%v'", want, got)
-		return false
-	}
-
-	return testStmt(ifStmt.Then, want.Then, t) && testStmt(ifStmt.OrElse, want.OrElse, t)
+	return testExpression(ifStmt.Condition, want.Condition, t) && testStmt(ifStmt.Then, want.Then, t) && testStmt(ifStmt.OrElse, want.OrElse, t)
 
 }
 
@@ -1128,10 +1109,5 @@ func testWhile(got ast.Statement, want *ast.WhileStmt, t *testing.T) bool {
 		t.Errorf("got='%T' want a *ast.WhileStmt.", got)
 		return false
 	}
-	if while.Condition.String() != want.Condition.String() {
-		t.Errorf("got wrong conditional expression. want='%v' got='%v'", want.Condition.String(), while.Condition.String())
-		return false
-	}
-
-	return testStmt(while.Body, want.Body, t)
+	return testExpression(want.Condition, want.Condition, t) && testStmt(while.Body, want.Body, t)
 }
