@@ -302,100 +302,99 @@ func TestParseBinary(t *testing.T) {
 func TestParseGrouping(t *testing.T) {
 	tests := []struct {
 		code string
-		exp  ast.Expression
+		want *ast.Grouping
 	}{
 		{
 			code: "(5+10);",
-			exp: ast.NewBinaryExpression(
+			want: ast.NewGroupingExp(ast.NewBinaryExpression(
 				ast.NewLiteralExpression(5),
 				token.Token{Type: token.PLUS, Lexeme: "+", Line: 1},
 				ast.NewLiteralExpression(10),
-			),
+			)),
 		},
 		{
 			code: "(5==12);",
-			exp: ast.NewBinaryExpression(
+			want: ast.NewGroupingExp(ast.NewBinaryExpression(
 				ast.NewLiteralExpression(5),
 				token.Token{Type: token.EQ_EQ, Lexeme: "==", Line: 1},
 				ast.NewLiteralExpression(12),
-			),
+			)),
 		},
 		{
 			code: "(true != false);",
-			exp: ast.NewBinaryExpression(
+			want: ast.NewGroupingExp(ast.NewBinaryExpression(
 				ast.NewLiteralExpression(true),
 				token.Token{Type: token.BANG_EQ, Lexeme: "!=", Line: 1},
 				ast.NewLiteralExpression(false),
-			),
+			)),
 		},
 		{
 			code: "(13 > 90);",
-			exp: ast.NewBinaryExpression(
+			want: ast.NewGroupingExp(ast.NewBinaryExpression(
 				ast.NewLiteralExpression(13),
 				token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
 				ast.NewLiteralExpression(90),
-			),
+			)),
 		},
 
 		{
-			code: "(13 >= 90);",
-			exp: ast.NewBinaryExpression(
-				ast.NewLiteralExpression(13),
-				token.Token{Type: token.GREATER_EQ, Lexeme: ">=", Line: 1},
-				ast.NewLiteralExpression(90),
-			),
+			code: "(number = nil);",
+			want: ast.NewGroupingExp(ast.NewAssignment(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "number", Literal: nil, Line: 1},
+				ast.NewLiteralExpression(nil),
+			)),
 		},
 		{
-			code: "(87 < 90);",
-			exp: ast.NewBinaryExpression(
-				ast.NewLiteralExpression(87),
-				token.Token{Type: token.LESS, Lexeme: "<", Line: 1},
-				ast.NewLiteralExpression(90),
-			),
+			code: "(true or false);",
+			want: ast.NewGroupingExp(ast.NewLogical(
+				ast.NewLiteralExpression(true),
+				token.Token{Type: token.OR, Lexeme: "or", Literal: nil, Line: 1},
+				ast.NewLiteralExpression(false),
+			)),
 		}, {
-			code: "(87 <= 90);",
-			exp: ast.NewBinaryExpression(
-				ast.NewLiteralExpression(87),
-				token.Token{Type: token.LESS_EQ, Lexeme: "<=", Line: 1},
+			code: "(nil and 90);",
+			want: ast.NewGroupingExp(ast.NewLogical(
+				ast.NewLiteralExpression(nil),
+				token.Token{Type: token.AND, Lexeme: "and", Literal: nil, Line: 1},
 				ast.NewLiteralExpression(90),
-			),
+			)),
 		},
 		{
-			code: "(12 * 90);",
-			exp: ast.NewBinaryExpression(
-				ast.NewLiteralExpression(12),
-				token.Token{Type: token.ASTERISK, Lexeme: "*", Line: 1},
-				ast.NewLiteralExpression(90),
-			),
+			code: `(nil? "hello": "good bye");`,
+			want: ast.NewGroupingExp(ast.NewTernaryConditional(
+				ast.NewLiteralExpression(nil),
+				token.Token{Type: token.QUESTION_MARK, Lexeme: "?", Literal: nil, Line: 1},
+				ast.NewLiteralExpression("hello"),
+				token.Token{Type: token.COLON, Lexeme: ":", Literal: nil, Line: 1},
+				ast.NewLiteralExpression("good bye"),
+			)),
 		},
 		{
-			code: "(12 / 90);",
-			exp: ast.NewBinaryExpression(
-				ast.NewLiteralExpression(12),
-				token.Token{Type: token.SLASH, Lexeme: "/", Line: 1},
-				ast.NewLiteralExpression(90),
-			),
+			code: "(unknown);",
+			want: ast.NewGroupingExp(ast.NewVariable(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "unknown", Literal: nil, Line: 1},
+			)),
 		},
 		{
 			code: `(!true);`,
-			exp: ast.NewUnaryExpression(
+			want: ast.NewGroupingExp(ast.NewUnaryExpression(
 				token.Token{Type: token.BANG, Lexeme: "!", Line: 1},
 				ast.NewLiteralExpression(true),
-			),
+			)),
 		},
 		{
 			code: "(-1);",
-			exp: ast.NewUnaryExpression(
+			want: ast.NewGroupingExp(ast.NewUnaryExpression(
 				token.Token{Type: token.MINUS, Lexeme: "-", Line: 1},
 				ast.NewLiteralExpression(1),
-			),
+			)),
 		},
 		{
 			code: `(!false);`,
-			exp: ast.NewUnaryExpression(
+			want: ast.NewGroupingExp(ast.NewUnaryExpression(
 				token.Token{Type: token.BANG, Lexeme: "!", Line: 1},
 				ast.NewLiteralExpression(false),
-			),
+			)),
 		},
 	}
 	for _, test := range tests {
@@ -403,30 +402,27 @@ func TestParseGrouping(t *testing.T) {
 		lxr := lexer.New(code)
 		tokens, err := lxr.Tokenize()
 		if err != nil {
-			t.Fatalf("Scanning failed with exception='%v'", err.Error())
+			t.Fatalf("`%s` -> failed to tokenize got error='%v'", test.code, err.Error())
 		}
 		prsr := New(tokens)
 		program, err := prsr.Parse()
 		if err != nil {
-			t.Fatalf("Parsing errors caught: %v", err.Error())
+			t.Fatalf("`%s` -> failed to parse got error='%v'", test.code, err.Error())
 		}
 
 		if len(program) != 1 {
-			t.Fatalf("program has wrong number of statements. want=%d got=%d", 1, len(program))
+			t.Fatalf("`%s` -> program has wrong number of statements. want=1 got=%d", test.code, len(program))
 		}
 
 		smt, isOk := program[0].(*ast.ExpressionStmt)
 		if !isOk {
-			t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+			t.Fatalf("`%s` -> program[0] is not *ast.ExpressionStmt. got=%T", test.code, program[0])
 		}
 
 		exp := smt.Exp
-		group, isGroup := exp.(*ast.Grouping)
-		if !isGroup {
-			t.Fatalf("exp is not *ast.Grouping. got=%T", exp)
-		}
-		if group.Exp.String() != test.exp.String() {
-			t.Fatalf("wrong group.Exp want='%v'. got='%v'", test.exp, group.Exp)
+		if !testGrouping(exp, test.want, t) {
+			t.Logf("failed on code=`%s`", test.code)
+			t.Fail()
 		}
 	}
 	code := `(5+10;`
