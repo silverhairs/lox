@@ -183,7 +183,7 @@ func TestParseUnary(t *testing.T) {
 
 		if passed := testUnary(expr, test.want, t); !passed {
 			t.Errorf("testUnary failed for '%s'", code)
-			t.FailNow()
+			t.Fail()
 		}
 	}
 
@@ -294,7 +294,7 @@ func TestParseBinary(t *testing.T) {
 		expr := stmt.Exp
 		if passed := testBinary(expr, test.want, t); !passed {
 			t.Errorf("testBinary failed for '%s'", code)
-			t.FailNow()
+			t.Fail()
 		}
 	}
 }
@@ -485,7 +485,7 @@ func TestParseVariable(t *testing.T) {
 		}
 		if passed := testVariable(exp, test.want, t); !passed {
 			t.Errorf("testVariable failed for '%s'", test.code)
-			t.FailNow()
+			t.Fail()
 		}
 	}
 }
@@ -582,7 +582,7 @@ func TestParseAssignment(t *testing.T) {
 
 		if passed := testAssignment(expr, test.want, t); !passed {
 			t.Errorf("testAssignment failed for '%s'", code)
-			t.FailNow()
+			t.Fail()
 		}
 	}
 }
@@ -711,7 +711,7 @@ func TestParseStatement(t *testing.T) {
 
 		if passed := testStmt(stmt, test.want, t); !passed {
 			t.Errorf("testStmt failed for '%s'", code)
-			t.FailNow()
+			t.Fail()
 		}
 	}
 }
@@ -771,7 +771,7 @@ func TestParseLogical(t *testing.T) {
 		}
 		if isOk := testLogical(stmt.Exp, test.want, t); !isOk {
 			t.Errorf("testLogical failed for '%s'", code)
-			t.FailNow()
+			t.Fail()
 		}
 	}
 
@@ -857,7 +857,7 @@ func TestParseWhile(t *testing.T) {
 		}
 		if !testWhile(stmts[0], test.want, t) {
 			t.Errorf("testWhile failed for '%s'", test.code)
-			t.FailNow()
+			t.Fail()
 		}
 	}
 }
