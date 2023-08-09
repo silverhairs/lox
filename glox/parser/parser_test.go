@@ -54,7 +54,7 @@ func TestParseTernary(t *testing.T) {
 		}
 
 		if len(program) != 1 {
-			t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+			t.Fatalf("program has wrong number of statements. want=%d got=%d", 1, len(program))
 		}
 
 		stmt, isOk := program[0].(*ast.ExpressionStmt)
@@ -114,7 +114,7 @@ func TestParseLiteral(t *testing.T) {
 			t.Fatalf("failed to parse code='%s' got error='%s'", test.code, err.Error())
 		}
 		if len(stmts) != 1 {
-			t.Fatalf("parsed into wrong number of statements. expected=1 got=%d", len(tokens))
+			t.Fatalf("parsed into wrong number of statements. want=1 got=%d", len(tokens))
 		}
 		stmt, isOk := stmts[0].(*ast.ExpressionStmt)
 		if !isOk {
@@ -171,7 +171,7 @@ func TestParseUnary(t *testing.T) {
 		}
 
 		if len(program) != 1 {
-			t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+			t.Fatalf("program has wrong number of statements. want=%d got=%d", 1, len(program))
 		}
 
 		stmt, isOk := program[0].(*ast.ExpressionStmt)
@@ -283,7 +283,7 @@ func TestParseBinary(t *testing.T) {
 		}
 
 		if len(program) != 1 {
-			t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+			t.Fatalf("program has wrong number of statements. want=%d got=%d", 1, len(program))
 		}
 
 		stmt, isOk := program[0].(*ast.ExpressionStmt)
@@ -412,7 +412,7 @@ func TestParseGrouping(t *testing.T) {
 		}
 
 		if len(program) != 1 {
-			t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+			t.Fatalf("program has wrong number of statements. want=%d got=%d", 1, len(program))
 		}
 
 		smt, isOk := program[0].(*ast.ExpressionStmt)
@@ -426,7 +426,7 @@ func TestParseGrouping(t *testing.T) {
 			t.Fatalf("exp is not *ast.Grouping. got=%T", exp)
 		}
 		if group.Exp.String() != test.exp.String() {
-			t.Fatalf("wrong group.Exp expected='%v'. got='%v'", test.exp, group.Exp)
+			t.Fatalf("wrong group.Exp want='%v'. got='%v'", test.exp, group.Exp)
 		}
 	}
 	code := `(5+10;`
@@ -444,7 +444,7 @@ func TestParseGrouping(t *testing.T) {
 	chunk := "expected ')' after expression"
 	got := err.Error()
 	if !strings.Contains(got, chunk) {
-		t.Fatalf("exception message wrong. expected to contain='%s' but got='%s'", chunk, got)
+		t.Fatalf("exception message wrong. want to contain='%s' but got='%s'", chunk, got)
 	}
 }
 
@@ -476,7 +476,7 @@ func TestParseVariable(t *testing.T) {
 			t.Fatalf("code:'%v'\tParsing errors caught: %v", test.code, err.Error())
 		}
 		if len(program) != 1 {
-			t.Fatalf("code:'%v'\tprogram has wrong number of statements. expected=%d got=%d", test.code, 1, len(program))
+			t.Fatalf("code:'%v'\tprogram has wrong number of statements. want=%d got=%d", test.code, 1, len(program))
 		}
 		smt, isOk := program[0].(*ast.ExpressionStmt)
 		if !isOk {
@@ -573,7 +573,7 @@ func TestParseAssignment(t *testing.T) {
 			t.Fatalf("code='%s'\tParsing errors caught: %v", code, err.Error())
 		}
 		if len(program) != 1 {
-			t.Fatalf("code='%s'\tprogram has wrong number of statements. expected=%d got=%d", code, 1, len(program))
+			t.Fatalf("code='%s'\tprogram has wrong number of statements. want=%d got=%d", code, 1, len(program))
 		}
 		smt, isOk := program[0].(*ast.ExpressionStmt)
 		if !isOk {
@@ -708,7 +708,7 @@ func TestParseStatement(t *testing.T) {
 		}
 
 		if len(program) != 1 {
-			t.Fatalf("code='%s'\tprogram has wrong number of statements. expected=%d got=%d", code, 1, len(program))
+			t.Fatalf("code='%s'\tprogram has wrong number of statements. want=%d got=%d", code, 1, len(program))
 		}
 
 		stmt := program[0]
@@ -767,7 +767,7 @@ func TestParseLogical(t *testing.T) {
 			t.Fatalf("failed to parse code `%s`", code)
 		}
 		if len(stmts) != 1 {
-			t.Fatalf("wrong number of statements. expected=1 got=%d", len(stmts))
+			t.Fatalf("wrong number of statements. want=1 got=%d", len(stmts))
 		}
 		stmt, isOk := stmts[0].(*ast.ExpressionStmt)
 		if !isOk {
@@ -857,7 +857,7 @@ func TestParseWhile(t *testing.T) {
 			t.Fatalf("failed to parse code `%s`", test.code)
 		}
 		if len(stmts) != 1 {
-			t.Fatalf("wrong number of statements. expected=1 got=%d", len(stmts))
+			t.Fatalf("wrong number of statements. want=1 got=%d", len(stmts))
 		}
 		if !testWhile(stmts[0], test.want, t) {
 			t.Errorf("testWhile failed for '%s'", test.code)
@@ -866,57 +866,57 @@ func TestParseWhile(t *testing.T) {
 	}
 }
 
-func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) bool {
-	isLiteral, literal := assertLiteral(exp, ast.NewLiteralExpression(expectedValue))
+func testLiteral(exp ast.Expression, wantValue any, t *testing.T) bool {
+	isLiteral, literal := assertLiteral(exp, ast.NewLiteralExpression(wantValue))
 	if !isLiteral {
 		t.Errorf("result.Left is not *ast.Literal. got=%T", exp)
 		return false
 	}
-	if literal.Value != expectedValue {
-		t.Errorf("literal.Value wrong. expected=5 got=%q", literal.Value)
+	if literal.Value != wantValue {
+		t.Errorf("literal.Value wrong. want=5 got=%q", literal.Value)
 		return false
 	}
 	return true
 }
 
-func assertLiteral(exp ast.Expression, expected *ast.Literal) (bool, *ast.Literal) {
+func assertLiteral(exp ast.Expression, want *ast.Literal) (bool, *ast.Literal) {
 	literal, isLiteral := exp.(*ast.Literal)
 	if !isLiteral || literal.String() != exp.String() {
 		return false, nil
 	}
-	return true, expected
+	return true, want
 }
 
-func testUnary(exp ast.Expression, expected *ast.Unary, t *testing.T) bool {
+func testUnary(exp ast.Expression, want *ast.Unary, t *testing.T) bool {
 	unary, isOk := exp.(*ast.Unary)
 	if !isOk {
 		t.Errorf("exp is not a *ast.Unary. got='%T'", exp)
 		return false
 	}
 
-	if unary.Operator.Lexeme != expected.Operator.Lexeme {
-		want, got := expected.Operator, unary.Operator
-		t.Errorf("wrong value for unary.Operator. expected='%v' got='%v'", want, got)
+	if unary.Operator.Lexeme != want.Operator.Lexeme {
+		want, got := want.Operator, unary.Operator
+		t.Errorf("wrong value for unary.Operator. want='%v' got='%v'", want, got)
 		return false
 	}
 
-	return testExpression(unary.Right, expected.Right, t)
+	return testExpression(unary.Right, want.Right, t)
 }
 
-func testBinary(exp ast.Expression, expected *ast.Binary, t *testing.T) bool {
+func testBinary(exp ast.Expression, want *ast.Binary, t *testing.T) bool {
 	binary, isOk := exp.(*ast.Binary)
 	if !isOk {
 		t.Errorf("exp is not a *ast.Binary. got='%T'", exp)
 		return false
 	}
 
-	return testExpression(binary.Left, expected.Left, t) && testExpression(binary.Right, expected.Right, t)
+	return testExpression(binary.Left, want.Left, t) && testExpression(binary.Right, want.Right, t)
 }
 
 func testGrouping(got ast.Expression, want *ast.Grouping, t *testing.T) bool {
 	grouping, isOk := got.(*ast.Grouping)
 	if !isOk {
-		t.Errorf("expected=*ast.Grouping. got='%T'", got)
+		t.Errorf("want=*ast.Grouping. got='%T'", got)
 		return false
 	}
 	return testExpression(grouping.Exp, want.Exp, t)
@@ -932,35 +932,35 @@ func testTernary(exp ast.Expression, want *ast.Ternary, t *testing.T) bool {
 	return testExpression(ternary.Condition, want.Condition, t) && testExpression(ternary.Then, want.Then, t) && testExpression(ternary.OrElse, want.OrElse, t)
 }
 
-func testVariable(exp ast.Expression, expected *ast.Variable, t *testing.T) bool {
+func testVariable(exp ast.Expression, want *ast.Variable, t *testing.T) bool {
 	variable, isOk := exp.(*ast.Variable)
 	if !isOk {
 		t.Errorf("exp is not a *ast.Variable. got='%T'", exp)
 		return false
 	}
 
-	if variable.Name.Lexeme != expected.Name.Lexeme {
-		want, got := expected.Name.Lexeme, variable.Name.Lexeme
-		t.Errorf("wrong value for variable.Name. expected='%v' got='%v'", want, got)
+	if variable.Name.Lexeme != want.Name.Lexeme {
+		want, got := want.Name.Lexeme, variable.Name.Lexeme
+		t.Errorf("wrong value for variable.Name. want='%v' got='%v'", want, got)
 		return false
 	}
 	return true
 }
 
-func testAssignment(exp ast.Expression, expected *ast.Assignment, t *testing.T) bool {
+func testAssignment(exp ast.Expression, want *ast.Assignment, t *testing.T) bool {
 	assign, isOk := exp.(*ast.Assignment)
 	if !isOk {
 		t.Errorf("exp is not a *ast.Assignment. got='%T'", exp)
 		return false
 	}
 
-	if assign.Name.Lexeme != expected.Name.Lexeme {
-		want, got := expected.Name.Lexeme, assign.Name.Lexeme
-		t.Errorf("wrong value for assign.Name. expected='%v' got='%v'", want, got)
+	if assign.Name.Lexeme != want.Name.Lexeme {
+		want, got := want.Name.Lexeme, assign.Name.Lexeme
+		t.Errorf("wrong value for assign.Name. want='%v' got='%v'", want, got)
 		return false
 	}
 
-	return testExpression(assign.Value, expected.Value, t)
+	return testExpression(assign.Value, want.Value, t)
 }
 
 func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
@@ -972,7 +972,7 @@ func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
 
 	if logical.Operator.Lexeme != want.Operator.Lexeme {
 		want, got := want.Operator, logical.Operator
-		t.Errorf("wrong value for logical.Operator. expected='%v' got='%v'", want, got)
+		t.Errorf("wrong value for logical.Operator. want='%v' got='%v'", want, got)
 		return false
 	}
 
@@ -982,7 +982,7 @@ func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
 func testExpression(got ast.Expression, want ast.Expression, t *testing.T) bool {
 	if want == nil {
 		if got != nil {
-			t.Errorf("wrong value for got. expected='nil' got='%v'", got)
+			t.Errorf("wrong value for got. want='nil' got='%v'", got)
 			return false
 		}
 		return true
@@ -1020,13 +1020,13 @@ func testLetStmt(stmt ast.Statement, want *ast.LetStmt, t *testing.T) bool {
 
 	if let.Name.Lexeme != want.Name.Lexeme {
 		want, got := want.Name.Lexeme, let.Name.Lexeme
-		t.Errorf("wrong value for let.Name. expected='%s' got='%s'", want, got)
+		t.Errorf("wrong value for let.Name. want='%s' got='%s'", want, got)
 		return false
 	}
 
 	if let.Value.String() != want.Value.String() {
 		want, got := want.Value, let.Value
-		t.Errorf("wrong value for let.Value. expected='%v' got='%v'", want, got)
+		t.Errorf("wrong value for let.Value. want='%v' got='%v'", want, got)
 		return false
 	}
 
@@ -1042,7 +1042,7 @@ func testPrintStmt(stmt ast.Statement, want *ast.PrintStmt, t *testing.T) bool {
 
 	if print.Exp.String() != want.Exp.String() {
 		want, got := want.Exp, print.Exp
-		t.Errorf("wrong value for print.Exp. expected='%v' got='%v'", want, got)
+		t.Errorf("wrong value for print.Exp. want='%v' got='%v'", want, got)
 		return false
 	}
 
@@ -1058,7 +1058,7 @@ func testExprStmt(stmt ast.Statement, want *ast.ExpressionStmt, t *testing.T) bo
 
 	if expr.Exp.String() != want.Exp.String() {
 		want, got := want.Exp, expr.Exp
-		t.Errorf("wrong value for expr.Exp. expected='%v' got='%v'", want, got)
+		t.Errorf("wrong value for expr.Exp. want='%v' got='%v'", want, got)
 		return false
 	}
 
@@ -1074,7 +1074,7 @@ func testBlockStmt(stmt ast.Statement, want *ast.BlockStmt, t *testing.T) bool {
 
 	if len(block.Stmts) != len(want.Stmts) {
 		want, got := len(want.Stmts), len(block.Stmts)
-		t.Errorf("wrong number of statements in block. expected='%d' got='%d'", want, got)
+		t.Errorf("wrong number of statements in block. want='%d' got='%d'", want, got)
 		return false
 	}
 
@@ -1090,7 +1090,7 @@ func testIfStmt(stmt ast.Statement, want *ast.IfStmt, t *testing.T) bool {
 
 	if ifStmt.Condition.String() != want.Condition.String() {
 		want, got := want.Condition, ifStmt.Condition
-		t.Errorf("wrong value for ifStmt.Condition. expected='%v' got='%v'", want, got)
+		t.Errorf("wrong value for ifStmt.Condition. want='%v' got='%v'", want, got)
 		return false
 	}
 
@@ -1101,7 +1101,7 @@ func testIfStmt(stmt ast.Statement, want *ast.IfStmt, t *testing.T) bool {
 func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 	if want == nil {
 		if stmt != nil {
-			t.Errorf("wrong value for stmt. expected='nil' got='%v'", stmt)
+			t.Errorf("wrong value for stmt. want='nil' got='%v'", stmt)
 			return false
 		}
 		return true
@@ -1129,11 +1129,11 @@ func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 func testWhile(got ast.Statement, want *ast.WhileStmt, t *testing.T) bool {
 	while, isOk := got.(*ast.WhileStmt)
 	if !isOk {
-		t.Errorf("got='%T' expected a *ast.WhileStmt.", got)
+		t.Errorf("got='%T' want a *ast.WhileStmt.", got)
 		return false
 	}
 	if while.Condition.String() != want.Condition.String() {
-		t.Errorf("got wrong conditional expression. expected='%v' got='%v'", want.Condition.String(), while.Condition.String())
+		t.Errorf("got wrong conditional expression. want='%v' got='%v'", want.Condition.String(), while.Condition.String())
 		return false
 	}
 
