@@ -42,6 +42,8 @@ const (
 	FUNCTION       = "FUNCTION"
 	FOR            = "FOR"
 	OR             = "OR"
+    BREAK          = "BREAK"
+    CONTINUE       = "CONTINUE"
 	NIL            = "NIL"
 	PRINT          = "PRINT"
 	RETURN         = "RETURN"
@@ -82,6 +84,8 @@ var keywords = map[string]TokenType{
 	"let":    LET,
 	"while":  WHILE,
 	"var":    LET,
+    "break":  BREAK,
+    "continue": CONTINUE,
 }
 
 func LookupIdentifier(keyword string) TokenType {
