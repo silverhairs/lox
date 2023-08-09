@@ -887,33 +887,6 @@ func assertLiteral(exp ast.Expression, expected *ast.Literal) (bool, *ast.Litera
 	return true, expected
 }
 
-func testBinary(exp ast.Expression, expected *ast.Binary, t *testing.T) bool {
-	binary, isOk := exp.(*ast.Binary)
-	if !isOk {
-		t.Errorf("exp is not a *ast.Binary. got='%T'", exp)
-		return false
-	}
-
-	if binary.Left.String() != expected.Left.String() {
-		want, got := expected.Left, binary.Left
-		t.Errorf("wrong value for binary.Left. expected='%v' got='%v'", want, got)
-		return false
-	}
-
-	if binary.Operator.Lexeme != expected.Operator.Lexeme {
-		want, got := expected.Operator.Lexeme, binary.Operator.Lexeme
-		t.Errorf("wrong value for binary.Operator. expected='%s' got='%s'", want, got)
-		return false
-	}
-
-	if binary.Right.String() != expected.Right.String() {
-		want, got := expected.Right, binary.Right
-		t.Errorf("wrong value for binary.Right. expected='%v' got='%v'", want, got)
-		return false
-	}
-	return true
-}
-
 func testUnary(exp ast.Expression, expected *ast.Unary, t *testing.T) bool {
 	unary, isOk := exp.(*ast.Unary)
 	if !isOk {
@@ -927,12 +900,36 @@ func testUnary(exp ast.Expression, expected *ast.Unary, t *testing.T) bool {
 		return false
 	}
 
-	if unary.Right.String() != expected.Right.String() {
-		want, got := expected.Right, unary.Right
-		t.Errorf("wrong value for unary.Right. expected='%v' got='%v'", want, got)
+	return testExpression(unary.Right, expected.Right, t)
+}
+
+func testBinary(exp ast.Expression, expected *ast.Binary, t *testing.T) bool {
+	binary, isOk := exp.(*ast.Binary)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Binary. got='%T'", exp)
 		return false
 	}
-	return true
+
+	return testExpression(binary.Left, expected.Left, t) && testExpression(binary.Right, expected.Right, t)
+}
+
+func testGrouping(got ast.Expression, want *ast.Grouping, t *testing.T) bool {
+	grouping, isOk := got.(*ast.Grouping)
+	if !isOk {
+		t.Errorf("expected=*ast.Grouping. got='%T'", got)
+		return false
+	}
+	return testExpression(grouping.Exp, want.Exp, t)
+
+}
+
+func testTernary(exp ast.Expression, want *ast.Ternary, t *testing.T) bool {
+	ternary, isOk := exp.(*ast.Ternary)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Ternary. got='%T'", exp)
+		return false
+	}
+	return testExpression(ternary.Condition, want.Condition, t) && testExpression(ternary.Then, want.Then, t) && testExpression(ternary.OrElse, want.OrElse, t)
 }
 
 func testVariable(exp ast.Expression, expected *ast.Variable, t *testing.T) bool {
@@ -963,13 +960,55 @@ func testAssignment(exp ast.Expression, expected *ast.Assignment, t *testing.T) 
 		return false
 	}
 
-	if assign.Value.String() != expected.Value.String() {
-		want, got := expected.Value, assign.Value
-		t.Errorf("wrong value for assign.Value. expected='%v' got='%v'", want, got)
+	return testExpression(assign.Value, expected.Value, t)
+}
+
+func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
+	logical, isOk := stmt.(*ast.Logical)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.Logical. got='%T'", stmt)
 		return false
 	}
 
-	return true
+	if logical.Operator.Lexeme != want.Operator.Lexeme {
+		want, got := want.Operator, logical.Operator
+		t.Errorf("wrong value for logical.Operator. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return testExpression(logical.Left, want.Left, t) && testExpression(logical.Right, want.Right, t)
+}
+
+func testExpression(got ast.Expression, want ast.Expression, t *testing.T) bool {
+	if want == nil {
+		if got != nil {
+			t.Errorf("wrong value for got. expected='nil' got='%v'", got)
+			return false
+		}
+		return true
+	}
+
+	switch want := want.(type) {
+	case *ast.Unary:
+		return testUnary(got, want, t)
+	case *ast.Literal:
+		return testLiteral(got, want, t)
+	case *ast.Grouping:
+		return testGrouping(got, want, t)
+	case *ast.Binary:
+		return testBinary(got, want, t)
+	case *ast.Ternary:
+		return testTernary(got, want, t)
+	case *ast.Variable:
+		return testVariable(got, want, t)
+	case *ast.Assignment:
+		return testAssignment(got, want, t)
+	case *ast.Logical:
+		return testLogical(got, want, t)
+	default:
+		t.Errorf("expression %T does not have a testing function. consider adding one", want)
+		return false
+	}
 }
 
 func testLetStmt(stmt ast.Statement, want *ast.LetStmt, t *testing.T) bool {
@@ -1085,62 +1124,6 @@ func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 		return false
 	}
 
-}
-
-func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
-	logical, isOk := stmt.(*ast.Logical)
-	if !isOk {
-		t.Errorf("stmt is not a *ast.Logical. got='%T'", stmt)
-		return false
-	}
-
-	if logical.Operator.Lexeme != want.Operator.Lexeme {
-		want, got := want.Operator, logical.Operator
-		t.Errorf("wrong value for logical.Operator. expected='%v' got='%v'", want, got)
-		return false
-	}
-
-	if logical.Left.String() != want.Left.String() {
-		want, got := want.Left, logical.Left
-		t.Errorf("wrong value for logical.Left. expected='%v' got='%v'", want, got)
-		return false
-	}
-
-	if logical.Right.String() != want.Right.String() {
-		want, got := want.Right, logical.Right
-		t.Errorf("wrong value for logical.Right. expected='%v' got='%v'", want, got)
-		return false
-	}
-
-	return true
-}
-
-func testTernary(exp ast.Expression, want *ast.Ternary, t *testing.T) bool {
-	ternary, isOk := exp.(*ast.Ternary)
-	if !isOk {
-		t.Errorf("exp is not a *ast.Ternary. got='%T'", exp)
-		return false
-	}
-
-	if ternary.Condition.String() != want.Condition.String() {
-		want, got := want.Condition, ternary.Condition
-		t.Errorf("wrong value for ternary.Condition. expected='%v' got='%v'", want, got)
-		return false
-	}
-
-	if ternary.Then.String() != want.Then.String() {
-		want, got := want.Then, ternary.Then
-		t.Errorf("wrong value for ternary.Then. expected='%v' got='%v'", want, got)
-		return false
-	}
-
-	if ternary.OrElse.String() != want.OrElse.String() {
-		want, got := want.OrElse, ternary.OrElse
-		t.Errorf("wrong value for ternary.Else. expected='%v' got='%v'", want, got)
-		return false
-	}
-
-	return true
 }
 
 func testWhile(got ast.Statement, want *ast.WhileStmt, t *testing.T) bool {
