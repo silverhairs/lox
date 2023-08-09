@@ -1,15 +1,15 @@
 package lexer
 
 import (
-	"glox/token"
-	"strings"
-	"testing"
+"glox/token"
+"strings"
+"testing"
 )
 
 func TestTokenize(t *testing.T) {
-	input := `
-	let age = 12;
-	5 + 10
+input := `
+let age = 12;
+5 + 10
 	1 - 2
 	5 > 0
 	1 < 12
@@ -32,6 +32,8 @@ func TestTokenize(t *testing.T) {
 		many lines"
 	and
 	or
+    break
+    continue
 	`
 
 	tests := []struct {
@@ -96,6 +98,8 @@ func TestTokenize(t *testing.T) {
 		many lines"`},
 		{token.AND, "and"},
 		{token.OR, "or"},
+        {token.BREAK, "break"},
+        {token.CONTINUE, "continue"},
 		{token.EOF, ""},
 	}
 

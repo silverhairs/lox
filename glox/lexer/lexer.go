@@ -114,6 +114,7 @@ func (s *Lexer) lex() error {
 		}
 	}
 
+
 	return err
 }
 
@@ -253,7 +254,7 @@ func (s *Lexer) slash() error {
 	} else if s.match('*') {
 		for s.peek() != '*' && !s.isAtEnd() {
 			s.advance()
-		}
+        }
 
 		if s.match('/') {
 			literal := s.Source[s.start+2 : s.current-2]
@@ -267,3 +268,5 @@ func (s *Lexer) slash() error {
 	}
 	return nil
 }
+
+
