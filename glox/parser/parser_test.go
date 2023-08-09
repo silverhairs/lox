@@ -915,6 +915,10 @@ func testGrouping(got ast.Expression, want *ast.Grouping, t *testing.T) bool {
 		t.Errorf("want=*ast.Grouping. got='%T'", got)
 		return false
 	}
+	str := grouping.String()
+	if !(str[0] == '(' && str[len(str)-1] == ')') {
+		t.Errorf("grouping expression must be insisde parentheses. got=`%s`", str)
+	}
 	return testExpression(grouping.Exp, want.Exp, t)
 
 }
