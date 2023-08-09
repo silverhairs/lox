@@ -9,58 +9,66 @@ import (
 )
 
 func TestParseTernary(t *testing.T) {
-	code := ` 15 > 1 ? "abc" : "123";`
 
-	lxr := lexer.New(code)
-	tokens, err := lxr.Tokenize()
-	if err != nil {
-		t.Fatalf("Scanning failed with exception='%v'", err.Error())
-	}
-	prsr := New(tokens)
-
-	program, err := prsr.Parse()
-	if err != nil {
-		t.Fatalf("Parsing errors caught: %q", err.Error())
-	}
-
-	if len(program) != 1 {
-		t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
-	}
-
-	stmt, isOk := program[0].(*ast.ExpressionStmt)
-	if !isOk {
-		t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
-	}
-
-	expr := stmt.Exp
-
-	ternary, isTernary := expr.(*ast.Ternary)
-	if !isTernary {
-		t.Fatalf("result is not *ast.Ternary. got=%T", expr)
-	}
-
-	if ternary.ThenOperator.Type != token.QUESTION_MARK {
-		t.Fatalf("exp.LeftOperator has the wrong token. expected='token.QUESTION_MARK' but got=%q", ternary.ThenOperator.Type)
+	tests := []struct {
+		code string
+		want *ast.Ternary
+	}{
+		{
+			code: ` 15 > 1 ? "abc" : "123";`,
+			want: ast.NewTernaryConditional(
+				ast.NewBinaryExpression(
+					ast.NewLiteralExpression(15),
+					token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+					ast.NewLiteralExpression(1),
+				),
+				token.Token{Type: token.QUESTION_MARK, Lexeme: "?", Line: 1},
+				ast.NewLiteralExpression("abc"),
+				token.Token{Type: token.COLON, Lexeme: ":", Line: 1},
+				ast.NewLiteralExpression("123"),
+			),
+		},
+		{
+			code: ` false ? "abc" : 123;`,
+			want: ast.NewTernaryConditional(
+				ast.NewLiteralExpression(false),
+				token.Token{Type: token.QUESTION_MARK, Lexeme: "?", Line: 1},
+				ast.NewLiteralExpression("abc"),
+				token.Token{Type: token.COLON, Lexeme: ":", Line: 1},
+				ast.NewLiteralExpression(123),
+			),
+		},
 	}
 
-	if ternary.OrElseOperator.Type != token.COLON {
-		t.Fatalf("exp.RightOperator has the wrong token. expected='token.COLON' but got=%q", ternary.ThenOperator.Type)
+	for _, test := range tests {
+		lxr := lexer.New(test.code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("`%s` -> failed to tokenize got error='%s'", test.code, err.Error())
+		}
+		prsr := New(tokens)
+
+		program, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("`%s` -> failed to parse got error='%s'", test.code, err.Error())
+		}
+
+		if len(program) != 1 {
+			t.Fatalf("program has wrong number of statements. expected=%d got=%d", 1, len(program))
+		}
+
+		stmt, isOk := program[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("program[0] is not *ast.ExpressionStmt. got=%T", program[0])
+		}
+
+		expr := stmt.Exp
+
+		if !testTernary(expr, test.want, t) {
+			t.Logf("failed on code=`%s`", test.code)
+			t.Fail()
+		}
 	}
-
-	condition, isBinary := ternary.Condition.(*ast.Binary)
-	if !isBinary {
-		t.Fatalf("exp.Condition is not *ast.Binary. got=%T", ternary.Condition)
-	}
-
-	testLiteral(condition.Left, "15", t)
-	if condition.Operator.Type != token.GREATER {
-		t.Fatalf("exp.Operator.Type is not token.GREATER. got=%q", string(condition.Operator.Type))
-	}
-
-	testLiteral(condition.Right, "1", t)
-	testLiteral(ternary.Then, "abc", t)
-	testLiteral(ternary.OrElse, "123", t)
-
 }
 
 func TestParseLiteral(t *testing.T) {
@@ -113,7 +121,10 @@ func TestParseLiteral(t *testing.T) {
 			t.Fatalf("`%v` -> stmts[0] is not a *ast.ExpressionStmt. got=%T", test.code, stmts[0])
 		}
 
-		testLiteral(stmt.Exp, test.want, t)
+		if !testLiteral(stmt.Exp, test.want, t) {
+			t.Logf("failed on code=`%v`", test.code)
+			t.Fail()
+		}
 
 	}
 }
@@ -855,15 +866,17 @@ func TestParseWhile(t *testing.T) {
 	}
 }
 
-func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) {
+func testLiteral(exp ast.Expression, expectedValue any, t *testing.T) bool {
 	isLiteral, literal := assertLiteral(exp, ast.NewLiteralExpression(expectedValue))
 	if !isLiteral {
-		t.Fatalf("result.Left is not *ast.Literal. got=%T", exp)
+		t.Errorf("result.Left is not *ast.Literal. got=%T", exp)
+		return false
 	}
 	if literal.Value != expectedValue {
-		t.Fatalf("literal.Value wrong. expected=5 got=%q", literal.Value)
+		t.Errorf("literal.Value wrong. expected=5 got=%q", literal.Value)
+		return false
 	}
-
+	return true
 }
 
 func assertLiteral(exp ast.Expression, expected *ast.Literal) (bool, *ast.Literal) {
@@ -1096,6 +1109,34 @@ func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
 	if logical.Right.String() != want.Right.String() {
 		want, got := want.Right, logical.Right
 		t.Errorf("wrong value for logical.Right. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	return true
+}
+
+func testTernary(exp ast.Expression, want *ast.Ternary, t *testing.T) bool {
+	ternary, isOk := exp.(*ast.Ternary)
+	if !isOk {
+		t.Errorf("exp is not a *ast.Ternary. got='%T'", exp)
+		return false
+	}
+
+	if ternary.Condition.String() != want.Condition.String() {
+		want, got := want.Condition, ternary.Condition
+		t.Errorf("wrong value for ternary.Condition. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if ternary.Then.String() != want.Then.String() {
+		want, got := want.Then, ternary.Then
+		t.Errorf("wrong value for ternary.Then. expected='%v' got='%v'", want, got)
+		return false
+	}
+
+	if ternary.OrElse.String() != want.OrElse.String() {
+		want, got := want.OrElse, ternary.OrElse
+		t.Errorf("wrong value for ternary.Else. expected='%v' got='%v'", want, got)
 		return false
 	}
 
