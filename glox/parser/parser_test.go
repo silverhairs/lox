@@ -890,9 +890,9 @@ func testUnary(exp ast.Expression, want *ast.Unary, t *testing.T) bool {
 		return false
 	}
 
-	if unary.Operator.Lexeme != want.Operator.Lexeme {
+	if unary.Operator.Type != want.Operator.Type {
 		want, got := want.Operator, unary.Operator
-		t.Errorf("wrong value for unary.Operator. want='%v' got='%v'", want, got)
+		t.Errorf("wrong operator. expected='%v' got='%v'", want, got)
 		return false
 	}
 
@@ -904,6 +904,10 @@ func testBinary(exp ast.Expression, want *ast.Binary, t *testing.T) bool {
 	if !isOk {
 		t.Errorf("exp is not a *ast.Binary. got='%T'", exp)
 		return false
+	}
+
+	if binary.Operator.Type != want.Operator.Type {
+		t.Errorf("wrong operator. expected='%v' got='%v'", binary.Operator.Type, want.Operator.Type)
 	}
 
 	return testExpression(binary.Left, want.Left, t) && testExpression(binary.Right, want.Right, t)
@@ -939,8 +943,8 @@ func testVariable(exp ast.Expression, want *ast.Variable, t *testing.T) bool {
 		return false
 	}
 
-	if variable.Name.Lexeme != want.Name.Lexeme {
-		want, got := want.Name.Lexeme, variable.Name.Lexeme
+	if variable.Name.Type != want.Name.Type {
+		want, got := want.Name.Type, variable.Name.Type
 		t.Errorf("wrong value for variable.Name. want='%v' got='%v'", want, got)
 		return false
 	}
@@ -954,8 +958,8 @@ func testAssignment(exp ast.Expression, want *ast.Assignment, t *testing.T) bool
 		return false
 	}
 
-	if assign.Name.Lexeme != want.Name.Lexeme {
-		want, got := want.Name.Lexeme, assign.Name.Lexeme
+	if assign.Name.Type != want.Name.Type {
+		want, got := want.Name.Type, assign.Name.Type
 		t.Errorf("wrong value for assign.Name. want='%v' got='%v'", want, got)
 		return false
 	}
@@ -970,7 +974,7 @@ func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
 		return false
 	}
 
-	if logical.Operator.Lexeme != want.Operator.Lexeme {
+	if logical.Operator.Type != want.Operator.Type {
 		want, got := want.Operator, logical.Operator
 		t.Errorf("wrong value for logical.Operator. want='%v' got='%v'", want, got)
 		return false
@@ -1018,8 +1022,8 @@ func testLetStmt(stmt ast.Statement, want *ast.LetStmt, t *testing.T) bool {
 		return false
 	}
 
-	if let.Name.Lexeme != want.Name.Lexeme {
-		want, got := want.Name.Lexeme, let.Name.Lexeme
+	if let.Name.Type != want.Name.Type {
+		want, got := want.Name.Type, let.Name.Type
 		t.Errorf("wrong value for let.Name. want='%s' got='%s'", want, got)
 		return false
 	}
