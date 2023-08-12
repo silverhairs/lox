@@ -11,6 +11,7 @@ type StmtVisitor interface {
 	VisitBlockStmt(*BlockStmt) any
 	VisitIfStmt(*IfStmt) any
 	VisitWhile(*WhileStmt) any
+	VisitBreak(*Break) any
 }
 
 type Statement interface {
@@ -91,4 +92,16 @@ func NewWhileStmt(cond Expression, body Statement) *WhileStmt {
 
 func (stmt *WhileStmt) Accept(v StmtVisitor) any {
 	return v.VisitWhile(stmt)
+}
+
+type Break struct {
+	Token token.Token
+}
+
+func NewBreakStmt(tok token.Token) *Break {
+	return &Break{Token: tok}
+}
+
+func (b *Break) Accept(v StmtVisitor) any {
+	return v.VisitBreak(b)
 }
