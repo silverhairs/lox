@@ -42,8 +42,8 @@ const (
 	FUNCTION       = "FUNCTION"
 	FOR            = "FOR"
 	OR             = "OR"
-    BREAK          = "BREAK"
-    CONTINUE       = "CONTINUE"
+	BREAK          = "BREAK"
+	CONTINUE       = "CONTINUE"
 	NIL            = "NIL"
 	PRINT          = "PRINT"
 	RETURN         = "RETURN"
@@ -67,25 +67,25 @@ type Token struct {
 }
 
 var keywords = map[string]TokenType{
-	"and":    AND,
-	"class":  CLASS,
-	"else":   ELSE,
-	"false":  FALSE,
-	"true":   TRUE,
-	"for":    FOR,
-	"fn":     FUNCTION,
-	"if":     IF,
-	"nil":    NIL,
-	"or":     OR,
-	"print":  PRINT,
-	"return": RETURN,
-	"super":  SUPER,
-	"this":   THIS,
-	"let":    LET,
-	"while":  WHILE,
-	"var":    LET,
-    "break":  BREAK,
-    "continue": CONTINUE,
+	"and":      AND,
+	"class":    CLASS,
+	"else":     ELSE,
+	"false":    FALSE,
+	"true":     TRUE,
+	"for":      FOR,
+	"fn":       FUNCTION,
+	"if":       IF,
+	"nil":      NIL,
+	"or":       OR,
+	"print":    PRINT,
+	"return":   RETURN,
+	"super":    SUPER,
+	"this":     THIS,
+	"let":      LET,
+	"while":    WHILE,
+	"var":      LET,
+	"break":    BREAK,
+	"continue": CONTINUE,
 }
 
 func LookupIdentifier(keyword string) TokenType {
@@ -95,4 +95,8 @@ func LookupIdentifier(keyword string) TokenType {
 	}
 
 	return IDENTIFIER
+}
+
+func IsLoopController(tok TokenType) bool {
+	return tok == CONTINUE || tok == BREAK
 }
