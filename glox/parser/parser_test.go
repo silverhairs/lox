@@ -838,6 +838,36 @@ func TestParseWhile(t *testing.T) {
 				ast.NewPrintStmt(ast.NewLiteralExpression("yes")),
 			),
 		},
+		{
+			code: `while(0>1 or false) break;`,
+			want: ast.NewWhileStmt(
+				ast.NewLogical(
+					ast.NewBinaryExpression(
+						ast.NewLiteralExpression(0),
+						token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+						ast.NewLiteralExpression(1),
+					),
+					token.Token{Type: token.OR, Lexeme: "or", Line: 1},
+					ast.NewLiteralExpression(false),
+				),
+				ast.NewBranch(token.Token{Type: token.BREAK, Lexeme: "break", Line: 1}),
+			),
+		},
+		{
+			code: `while(0>1 or false) continue;`,
+			want: ast.NewWhileStmt(
+				ast.NewLogical(
+					ast.NewBinaryExpression(
+						ast.NewLiteralExpression(0),
+						token.Token{Type: token.GREATER, Lexeme: ">", Line: 1},
+						ast.NewLiteralExpression(1),
+					),
+					token.Token{Type: token.OR, Lexeme: "or", Line: 1},
+					ast.NewLiteralExpression(false),
+				),
+				ast.NewBranch(token.Token{Type: token.CONTINUE, Lexeme: "continue", Line: 1}),
+			),
+		},
 	}
 
 	for _, test := range tests {
@@ -1104,6 +1134,8 @@ func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 		return testIfStmt(stmt, want, t)
 	case *ast.WhileStmt:
 		return testWhile(stmt, want, t)
+	case *ast.BranchStmt:
+		return testBranch(stmt, want, t)
 	default:
 		t.Errorf("statement %T does not have a testing function. consider adding one", want)
 		return false
@@ -1118,4 +1150,18 @@ func testWhile(got ast.Statement, want *ast.WhileStmt, t *testing.T) bool {
 		return false
 	}
 	return testExpression(want.Condition, want.Condition, t) && testStmt(while.Body, want.Body, t)
+}
+
+func testBranch(got ast.Statement, want *ast.BranchStmt, t *testing.T) bool {
+	branch, isOk := got.(*ast.BranchStmt)
+	if !isOk {
+		t.Errorf("got='%T' want a *ast.BranchStmt", got)
+		return false
+	}
+	if branch.Token.Type != want.Token.Type {
+		t.Errorf("branch stmt has wrong token. got='%v' expected='%v'", branch.Token.Type, want.Token.Type)
+		return false
+	}
+
+	return true
 }

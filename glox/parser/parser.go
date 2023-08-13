@@ -1,14 +1,21 @@
 package parser
 
 import (
+	"fmt"
 	"glox/ast"
 	"glox/exception"
 	"glox/token"
 )
 
+// statement -> whileStmt
+// whileStmt -> "while" "(" expression ")" statement
+// statement -> branch
+// branch -> expression?  break | continue
+
 type Parser struct {
-	tokens   []token.Token
-	position int
+	tokens    []token.Token
+	position  int
+	loopLevel int
 }
 
 func New(tokens []token.Token) *Parser {
@@ -94,11 +101,25 @@ func (p *Parser) letDeclaration() (ast.Statement, error) {
 }
 
 func (p *Parser) statement() (ast.Statement, error) {
-	if p.match(token.FOR) {
+	if p.match(token.BREAK) || p.match(token.CONTINUE) {
+		tok := p.previous()
+		if p.loopLevel == 0 {
+			return nil, exception.Runtime(p.previous(), fmt.Sprintf("'%s' cannot be used outside of a loop.", tok.Lexeme))
+		}
+		if _, err := p.consume(token.SEMICOLON, fmt.Sprintf("expect ';' after '%s'.", tok.Lexeme)); err != nil {
+			return nil, err
+		}
+		return ast.NewBranch(tok), nil
+
+	} else if p.match(token.FOR) {
+		p.loopLevel++
+		defer func() { p.loopLevel-- }()
 		return p.forStatement()
 	} else if p.match(token.PRINT) {
 		return p.printStatement()
 	} else if p.match(token.WHILE) {
+		p.loopLevel++
+		defer func() { p.loopLevel-- }()
 		return p.while()
 	} else if p.match(token.L_BRACE) {
 		block, err := p.block()
