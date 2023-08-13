@@ -11,7 +11,7 @@ type StmtVisitor interface {
 	VisitBlockStmt(*BlockStmt) any
 	VisitIfStmt(*IfStmt) any
 	VisitWhile(*WhileStmt) any
-	VisitBreak(*Break) any
+	VisitBranch(*BranchStmt) any
 }
 
 type Statement interface {
@@ -94,14 +94,15 @@ func (stmt *WhileStmt) Accept(v StmtVisitor) any {
 	return v.VisitWhile(stmt)
 }
 
-type Break struct {
+// BranchStmt statement represent `break` or `continue`
+type BranchStmt struct {
 	Token token.Token
 }
 
-func NewBreakStmt(tok token.Token) *Break {
-	return &Break{Token: tok}
+func NewBranch(tok token.Token) *BranchStmt {
+	return &BranchStmt{Token: tok}
 }
 
-func (b *Break) Accept(v StmtVisitor) any {
-	return v.VisitBreak(b)
+func (b *BranchStmt) Accept(v StmtVisitor) any {
+	return v.VisitBranch(b)
 }
