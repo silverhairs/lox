@@ -18,7 +18,7 @@ func TestLookupIdentifier(t *testing.T) {
 		{word: "true", expected: TRUE},
 		{word: "false", expected: FALSE},
 		{word: "print", expected: PRINT},
-		{word: "fn", expected: FUNCTION},
+		{word: "fun", expected: FUNCTION},
 		{word: "while", expected: WHILE},
 		{word: "for", expected: FOR},
 		{word: "this", expected: THIS},

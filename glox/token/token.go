@@ -73,7 +73,7 @@ var keywords = map[string]TokenType{
 	"false":    FALSE,
 	"true":     TRUE,
 	"for":      FOR,
-	"fn":       FUNCTION,
+	"fun":      FUNCTION,
 	"if":       IF,
 	"nil":      NIL,
 	"or":       OR,
