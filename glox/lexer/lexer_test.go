@@ -1,13 +1,13 @@
 package lexer
 
 import (
-"glox/token"
-"strings"
-"testing"
+	"glox/token"
+	"strings"
+	"testing"
 )
 
 func TestTokenize(t *testing.T) {
-input := `
+	input := `
 let age = 12;
 5 + 10
 	1 - 2
@@ -16,7 +16,7 @@ let age = 12;
 	2 >= 1
 	1 <= 1
 	class Example {}
-	fn call_me()
+	fun call_me()
 	true != false
 	// this is a comment
 	this.name
@@ -67,7 +67,7 @@ let age = 12;
 		{token.IDENTIFIER, "Example"},
 		{token.L_BRACE, "{"},
 		{token.R_BRACE, "}"},
-		{token.FUNCTION, "fn"},
+		{token.FUNCTION, "fun"},
 		{token.IDENTIFIER, "call_me"},
 		{token.L_PAREN, "("},
 		{token.R_PAREN, ")"},
@@ -98,8 +98,8 @@ let age = 12;
 		many lines"`},
 		{token.AND, "and"},
 		{token.OR, "or"},
-        {token.BREAK, "break"},
-        {token.CONTINUE, "continue"},
+		{token.BREAK, "break"},
+		{token.CONTINUE, "continue"},
 		{token.EOF, ""},
 	}
 
