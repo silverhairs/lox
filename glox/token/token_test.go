@@ -40,3 +40,31 @@ func TestLookupIdentifier(t *testing.T) {
 		}
 	}
 }
+
+func TestIsLoopController(t *testing.T) {
+	tests := []struct {
+		tok      TokenType
+		expected bool
+	}{
+		{tok: BREAK, expected: true},
+		{tok: CONTINUE, expected: true},
+		{tok: RETURN, expected: false},
+		{tok: ELSE, expected: false},
+		{tok: IF, expected: false},
+		{tok: WHILE, expected: false},
+		{tok: FOR, expected: false},
+		{tok: THIS, expected: false},
+		{tok: SUPER, expected: false},
+		{tok: LET, expected: false},
+		{tok: CLASS, expected: false},
+	}
+
+	for _, test := range tests {
+		got := IsLoopController(test.tok)
+		expected := test.expected
+
+		if got != expected {
+			t.Fatalf("failed to get token type for '%s'. got='%v' expected='%v'", test.tok, got, expected)
+		}
+	}
+}
