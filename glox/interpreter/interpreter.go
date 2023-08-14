@@ -287,6 +287,10 @@ func (i *Interpreter) VisitLogical(exp *ast.Logical) any {
 	return i.evaluate(exp.Right)
 }
 
+func (i *Interpreter) VisitBranch(stmt *ast.BranchStmt) any {
+	panic(stmt)
+}
+
 func (i *Interpreter) VisitWhile(exp *ast.WhileStmt) any {
 
 	cond := i.evaluate(exp.Condition)
@@ -295,15 +299,40 @@ func (i *Interpreter) VisitWhile(exp *ast.WhileStmt) any {
 		return err
 	}
 	for isTruthy(cond) {
-		if err := i.execute(exp.Body); err != nil {
+		defer func() {
+			// Consumes panic(errBreak)
+			if r := recover(); r != nil {
+				if branch, isBranch := r.(*ast.BranchStmt); !isBranch || branch.Token.Type != token.BREAK {
+					panic(r)
+				}
+			}
+		}()
+		res, err := i.execLoop(exp)
+		if err != nil {
 			// The error is already handled by `execute` so there is no need to
 			// return it.
 			break
 		}
-		cond = i.evaluate(exp.Condition)
+		cond = res
 	}
 
 	return nil
+}
+
+func (i *Interpreter) execLoop(loop *ast.WhileStmt) (res any, err error) {
+	//FIXME: The `continue` statement doesn't seem to work as expected.
+	defer func() {
+		// Consumes panic(errContinue)
+		if r := recover(); r != nil {
+			if branch, isBranch := r.(*ast.BranchStmt); !isBranch || branch.Token.Type != token.CONTINUE {
+				panic(r)
+			}
+		}
+	}()
+
+	err = i.execute(loop.Body)
+	res = i.evaluate(loop.Condition)
+	return res, err
 }
 
 func (i *Interpreter) evaluate(exp ast.Expression) any {
