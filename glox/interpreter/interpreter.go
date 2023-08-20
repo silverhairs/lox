@@ -5,6 +5,7 @@ import (
 	"glox/ast"
 	"glox/env"
 	"glox/exception"
+	"glox/native"
 	"glox/object"
 	"glox/token"
 	"io"
@@ -18,7 +19,9 @@ type Interpreter struct {
 }
 
 func New(stderr io.Writer, stdout io.Writer) *Interpreter {
-	return &Interpreter{StdOut: stdout, StdErr: stderr, Env: env.Global()}
+	globals := env.Global()
+	globals.Define("clock", native.Clock[*Interpreter]())
+	return &Interpreter{StdOut: stdout, StdErr: stderr, Env: globals}
 }
 
 func (i *Interpreter) Interpret(stmts []ast.Statement) any {
