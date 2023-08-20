@@ -5,6 +5,7 @@ import (
 	"glox/ast"
 	"glox/env"
 	"glox/exception"
+	"glox/object"
 	"glox/token"
 	"io"
 	"math"
@@ -317,6 +318,41 @@ func (i *Interpreter) VisitWhile(exp *ast.WhileStmt) any {
 	}
 
 	return nil
+}
+
+func (i *Interpreter) VisitCall(expr *ast.Call) any {
+	calle := i.evaluate(expr.Callee)
+	err, isErr := calle.(error)
+	if !isErr {
+		args := []any{}
+		for _, arg := range expr.Args {
+			val := i.evaluate(arg)
+			if err, isErr = val.(error); isErr {
+				break
+			}
+			args = append(args, val)
+		}
+		if err != nil {
+			return err
+		}
+		function, isOk := calle.(object.Callable[*Interpreter])
+		if !isOk {
+			return exception.Runtime(expr.Paren, fmt.Sprintf("'%v' cannot be called.", expr.Callee.String()))
+		} else if function.Arity() != len(args) {
+			want, got := function.Arity(), len(args)
+			var msg string
+			if got > want {
+				msg = fmt.Sprintf("too many arguments passed. expected %d but got %d.", want, got)
+			} else {
+				msg = fmt.Sprintf("not enough arguments passed. expected %d but got %d.", want, got)
+			}
+			return exception.Runtime(expr.Paren, msg)
+		}
+		return function.Call(i, args)
+	}
+
+	return err
+
 }
 
 func (i *Interpreter) execLoop(loop *ast.WhileStmt) (res any, err error) {

@@ -263,7 +263,7 @@ func parenthesize(name ExpType, value string) string {
 
 	out.WriteString("(" + string(name) + " ")
 	out.WriteString(value)
-	out.WriteString(" )")
+	out.WriteString(")")
 
 	return out.String()
 }
