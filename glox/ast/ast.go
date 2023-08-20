@@ -18,6 +18,7 @@ const (
 	ASSIGNMENT_EXP  ExpType = "assignment"
 	LOGICAL_OR_EXP  ExpType = "logical_or"
 	LOGICAL_AND_EXP ExpType = "logical_and"
+	CALL_EXP        ExpType = "call"
 )
 
 type Expression interface {
@@ -35,6 +36,7 @@ type Visitor interface {
 	VisitVariable(exp *Variable) any
 	VisitAssignment(exp *Assignment) any
 	VisitLogical(exp *Logical) any
+	VisitCall(exp *Call) any
 }
 
 type Literal struct {
@@ -264,4 +266,35 @@ func parenthesize(name ExpType, value string) string {
 	out.WriteString(" )")
 
 	return out.String()
+}
+
+type Call struct {
+	Callee Expression
+	Paren  token.Token // Closing parenthesis, we keep track of this in order to know the location of the code in case an error happens in the arguments list.
+	Args   []Expression
+}
+
+func NewCall(callee Expression, paren token.Token, arguments []Expression) *Call {
+	return &Call{Callee: callee, Paren: paren, Args: arguments}
+}
+
+func (exp *Call) Type() ExpType {
+	return CALL_EXP
+}
+
+func (exp *Call) Accept(v Visitor) any {
+	return v.VisitCall(exp)
+}
+
+func (exp *Call) String() string {
+	var out bytes.Buffer
+	out.WriteString(exp.Callee.String() + "(arguments ")
+	for i, arg := range exp.Args {
+		out.WriteString(arg.String())
+		if i+1 != len(exp.Args) {
+			out.WriteString(", ")
+		}
+	}
+	out.WriteString(")")
+	return parenthesize(exp.Type(), out.String())
 }

@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"fmt"
 	"glox/ast"
 	"glox/lexer"
 	"glox/token"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -777,6 +779,80 @@ func TestParseLogical(t *testing.T) {
 
 }
 
+func TestParseCall(t *testing.T) {
+	tests := []struct {
+		code string
+		want *ast.Call
+	}{
+		{
+			code: "function();",
+			want: ast.NewCall(
+				ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "function", Line: 1}),
+				token.Token{Type: token.R_PAREN, Lexeme: ")", Line: 1},
+				[]ast.Expression{},
+			),
+		},
+		{
+			code: "isOdd(12);",
+			want: ast.NewCall(
+				ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "isOdd", Line: 1}),
+				token.Token{Type: token.R_PAREN, Lexeme: ")", Line: 1},
+				[]ast.Expression{
+					ast.NewLiteralExpression(12),
+				},
+			),
+		},
+		{
+			code: "add(5.1, 90);",
+			want: ast.NewCall(
+				ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "add", Line: 1}),
+				token.Token{Type: token.R_PAREN, Lexeme: ")", Line: 1},
+				[]ast.Expression{
+					ast.NewLiteralExpression(5.1),
+					ast.NewLiteralExpression(90),
+				},
+			),
+		},
+	}
+
+	for _, test := range tests {
+		t.Logf("TestParseCall code='%s'", test.code)
+		lxr := lexer.New(test.code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			t.Fatalf("failed to tokenize code `%s`", test.code)
+		}
+		prsr := New(tokens)
+		stmts, err := prsr.Parse()
+		if err != nil {
+			t.Fatalf("failed to parse code `%s`", test.code)
+		}
+		if len(stmts) != 1 {
+			t.Fatalf("wrong number of statements. want=1 got=%d", len(stmts))
+		}
+		stmt, isOk := stmts[0].(*ast.ExpressionStmt)
+		if !isOk {
+			t.Fatalf("stmts[0] is not a *ast.ExpressionStmt. got=%T", stmts[0])
+		}
+		if isOk := testCall(stmt.Exp, test.want, t); !isOk {
+			t.Fail()
+		}
+	}
+
+	code := callWith256Args("example")
+	lxr := lexer.New(code)
+	tokens, err := lxr.Tokenize()
+	if err != nil {
+		t.Fatalf("failed to tokenize code `%s`", code)
+	}
+	prsr := New(tokens)
+	_, err = prsr.Parse()
+	if err == nil {
+		t.Fatalf("Parsing should have caught an error on code='%s'", code)
+	}
+
+}
+
 func TestParseWhile(t *testing.T) {
 	tests := []struct {
 		code string
@@ -978,6 +1054,11 @@ func testVariable(exp ast.Expression, want *ast.Variable, t *testing.T) bool {
 		t.Errorf("wrong value for variable.Name. want='%v' got='%v'", want, got)
 		return false
 	}
+	if variable.Name.Lexeme != want.Name.Lexeme {
+		want, got := want.Name.Lexeme, variable.Name.Lexeme
+		t.Errorf("wrong variable name. want='%s' got='%s'", want, got)
+		return false
+	}
 	return true
 }
 
@@ -1013,6 +1094,40 @@ func testLogical(stmt ast.Expression, want *ast.Logical, t *testing.T) bool {
 	return testExpression(logical.Left, want.Left, t) && testExpression(logical.Right, want.Right, t)
 }
 
+func testCall(got ast.Expression, want *ast.Call, t *testing.T) bool {
+	call, isOk := got.(*ast.Call)
+	if !isOk {
+		t.Errorf("passed expression is not a *ast.Call. got='%T' want='%T'", got, want)
+		return false
+	}
+	if len(call.Args) != len(want.Args) {
+		t.Errorf("call expression has wrong number of arguments. got='%d' want='%d'", len(call.Args), len(want.Args))
+		return false
+	}
+	if call.Paren.Type != want.Paren.Type {
+		t.Errorf("call.Paren has the wrong token. got='%v' want='%v'", call.Paren, want.Paren)
+		return false
+	}
+	if !testExpression(call.Callee, want.Callee, t) {
+		t.Errorf("call.Calle has the wrong expression. got='%v' want='%v'", call.Callee, want.Callee)
+		return false
+	}
+
+	if len(call.Args) == 0 && len(want.Args) == 0 {
+		return true
+	}
+
+	for i, arg := range call.Args {
+		wantArg := want.Args[i]
+		if !testExpression(arg, wantArg, t) {
+			t.Errorf("argument '%d' is wrong. got='%v' want='%v'", i, arg, wantArg)
+			return false
+		}
+	}
+
+	return true
+}
+
 func testExpression(got ast.Expression, want ast.Expression, t *testing.T) bool {
 	if want == nil {
 		if got != nil {
@@ -1039,6 +1154,8 @@ func testExpression(got ast.Expression, want ast.Expression, t *testing.T) bool 
 		return testAssignment(got, want, t)
 	case *ast.Logical:
 		return testLogical(got, want, t)
+	case *ast.Call:
+		return testCall(got, want, t)
 	default:
 		t.Errorf("expression %T does not have a testing function. consider adding one", want)
 		return false
@@ -1164,4 +1281,14 @@ func testBranch(got ast.Statement, want *ast.BranchStmt, t *testing.T) bool {
 	}
 
 	return true
+}
+
+// Generates the code for a function call with 256 arguments
+// e.g. `foo(1, 2, 3, ..., 256);`
+func callWith256Args(name string) string {
+	args := []string{}
+	for i := 1; i <= 256; i++ {
+		args = append(args, strconv.Itoa(i))
+	}
+	return fmt.Sprintf("%s(%s);", name, strings.Join(args, ", "))
 }
