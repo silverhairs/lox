@@ -49,3 +49,7 @@ func (p *printer) VisitAssignment(assign *Assignment) any {
 func (p *printer) VisitLogical(exp *Logical) any {
 	return exp.String()
 }
+
+func (p *printer) VisitCall(exp *Call) any {
+	return exp.String()
+}
