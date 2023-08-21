@@ -47,8 +47,12 @@ Production rules:
 
 ```bnf
     program    -> declaration* EOF ;
-    declaration-> letDecl
+    declaration-> funDecl
+                | letDecl
                 | statement ;
+    funDecl    -> "fun" function ;
+    function   -> IDENTIFIER "(" parameters ")" block ;
+    parameters -> IDENTIFIER ("," IDENTIER)* :
     letDecl    -> ("var" | "let") IDENTIFIER ("=" expression) ? ";" ;
 
     statement  -> exprStmt
