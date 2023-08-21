@@ -12,6 +12,7 @@ type StmtVisitor interface {
 	VisitIfStmt(*IfStmt) any
 	VisitWhile(*WhileStmt) any
 	VisitBranch(*BranchStmt) any
+	VisitFunction(*Function) any
 }
 
 type Statement interface {
@@ -105,4 +106,18 @@ func NewBranch(tok token.Token) *BranchStmt {
 
 func (b *BranchStmt) Accept(v StmtVisitor) any {
 	return v.VisitBranch(b)
+}
+
+type Function struct {
+	Name   token.Token
+	Params []token.Token
+	Body   []Statement
+}
+
+func NewFunction(name token.Token, params []token.Token, body []Statement) *Function {
+	return &Function{Name: name, Params: params, Body: body}
+}
+
+func (fn *Function) Accept(v StmtVisitor) any {
+	return v.VisitFunction(fn)
 }
