@@ -43,12 +43,54 @@ func (p *Parser) program() ([]ast.Statement, error) {
 }
 
 func (p *Parser) declaration() (ast.Statement, error) {
-	if p.match(token.IF) {
+	if p.match(token.FUNCTION) {
+		return p.function("function")
+	} else if p.match(token.IF) {
 		return p.ifStatement()
 	} else if p.match(token.LET) {
 		return p.letDeclaration()
 	}
 	return p.statement()
+}
+
+func (p *Parser) function(kind string) (ast.Statement, error) {
+	name, err := p.consume(token.IDENTIFIER, "expected "+kind+" name.")
+	if err == nil {
+		if _, err = p.consume(token.L_PAREN, "expect '(' after "+kind+" name."); err != nil {
+			return nil, err
+		}
+
+		params := []token.Token{}
+		if !p.check(token.R_PAREN) {
+			for {
+				if len(params) >= 255 {
+					return nil, exception.Runtime(p.peek(), kind+" cannot have more than 255 parameters.")
+				}
+				param, err := p.consume(token.IDENTIFIER, "expected a parameter name.")
+				if err != nil {
+					return nil, err
+				}
+				params = append(params, param)
+
+				if !p.match(token.COMMA) {
+					break
+				}
+			}
+		}
+
+		if _, err = p.consume(token.R_PAREN, "expected ')' after parameters."); err != nil {
+			return nil, err
+		}
+		if body, e := p.block(); e != nil {
+			return ast.NewFunction(name, params, body), e
+		} else {
+			return nil, e
+		}
+
+	}
+
+	return nil, err
+
 }
 
 func (p *Parser) ifStatement() (ast.Statement, error) {

@@ -968,6 +968,47 @@ func TestParseWhile(t *testing.T) {
 	}
 }
 
+func TestParseFunction(t *testing.T) {
+	tests := []struct {
+		code string
+		want *ast.Function
+	}{
+		{
+			code: `fun out(a){ print a; }`,
+			want: ast.NewFunction(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "out", Line: 1},
+				[]token.Token{{Type: token.IDENTIFIER, Lexeme: "a", Line: 1}},
+				[]ast.Statement{
+					ast.NewPrintStmt(ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "a", Line: 1})),
+				},
+			),
+		},
+	}
+
+	for _, test := range tests {
+		t.Logf("TestParseFunction code='%s'", test.code)
+		lxr := lexer.New(test.code)
+		tokens, err := lxr.Tokenize()
+		if err != nil {
+			msg := err.Error()
+			t.Fatalf("failed to tokenize code `%s`. got error `%s`", test.code, msg)
+		}
+		prsr := New(tokens)
+		stmts, err := prsr.Parse()
+		if err != nil {
+			msg := err.Error()
+			t.Fatalf("failed to parse code `%s`. got error `%s`", test.code, msg)
+		}
+		if len(stmts) != 1 {
+			t.Fatalf("wrong number of statements. want=1 got=%d", len(stmts))
+		}
+		if !testFunction(stmts[0], test.want, t) {
+			t.Errorf("testFunction failed for '%s'", test.code)
+			t.Fail()
+		}
+	}
+}
+
 func testLiteral(exp ast.Expression, wantValue any, t *testing.T) bool {
 	isLiteral, literal := assertLiteral(exp, ast.NewLiteralExpression(wantValue))
 	if !isLiteral {
@@ -1253,6 +1294,8 @@ func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 		return testWhile(stmt, want, t)
 	case *ast.BranchStmt:
 		return testBranch(stmt, want, t)
+	case *ast.Function:
+		return testFunction(stmt, want, t)
 	default:
 		t.Errorf("statement %T does not have a testing function. consider adding one", want)
 		return false
@@ -1278,6 +1321,48 @@ func testBranch(got ast.Statement, want *ast.BranchStmt, t *testing.T) bool {
 	if branch.Token.Type != want.Token.Type {
 		t.Errorf("branch stmt has wrong token. got='%v' expected='%v'", branch.Token.Type, want.Token.Type)
 		return false
+	}
+
+	return true
+}
+
+func testFunction(got ast.Statement, want *ast.Function, t *testing.T) bool {
+	fn, isOk := got.(*ast.Function)
+	if !isOk {
+		t.Errorf("expected *ast.Function but got='%T'", got)
+		return false
+	}
+	if fn.Name.Lexeme != want.Name.Lexeme {
+		t.Errorf("wrong function name got='%s' want='%s'", fn.Name.Lexeme, want.Name.Lexeme)
+		return false
+	}
+	if len(fn.Params) != len(want.Params) {
+		t.Errorf("wrong number of parameters. got='%d' want='%d'", len(fn.Params), len(want.Params))
+		return false
+	}
+
+	if len(fn.Body) != len(want.Body) {
+		t.Errorf("function body has wrong number of statemnt. got='%d' want='%d'", len(fn.Body), len(want.Body))
+		return false
+	}
+
+	if len(fn.Params) != 0 && len(want.Params) != 0 {
+		for i, param := range fn.Params {
+			wantedParam := want.Params[i]
+			if param.Lexeme != wantedParam.Lexeme {
+				t.Errorf("error at param %d. got='%s' want='%s'", i+1, param.Lexeme, wantedParam.Lexeme)
+				return false
+			}
+		}
+		if len(fn.Body) != 0 && len(want.Body) != 0 {
+			for i, stmt := range fn.Body {
+				wantedStmt := want.Body[i]
+				if !testStmt(stmt, wantedStmt, t) {
+					t.Errorf("function stmt %d is wrong. got='%v' want='%v'", i+1, stmt, wantedStmt)
+					return false
+				}
+			}
+		}
 	}
 
 	return true
