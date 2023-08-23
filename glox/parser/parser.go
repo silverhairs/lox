@@ -55,11 +55,11 @@ func (p *Parser) declaration() (ast.Statement, error) {
 
 func (p *Parser) function(kind string) (ast.Statement, error) {
 	name, err := p.consume(token.IDENTIFIER, "expected "+kind+" name.")
+	if err != nil {
+		return nil, err
+	}
+	_, err = p.consume(token.L_PAREN, "expected '(' after "+kind+" name.")
 	if err == nil {
-		if _, err = p.consume(token.L_PAREN, "expect '(' after "+kind+" name."); err != nil {
-			return nil, err
-		}
-
 		params := []token.Token{}
 		if !p.check(token.R_PAREN) {
 			for {
@@ -81,12 +81,11 @@ func (p *Parser) function(kind string) (ast.Statement, error) {
 		if _, err = p.consume(token.R_PAREN, "expected ')' after parameters."); err != nil {
 			return nil, err
 		}
-		if body, e := p.block(); e != nil {
-			return ast.NewFunction(name, params, body), e
-		} else {
-			return nil, e
+		if _, err = p.consume(token.L_BRACE, "expected '{' before "+kind+" body"); err != nil {
+			return nil, err
 		}
-
+		body, err := p.block()
+		return ast.NewFunction(name, params, body), err
 	}
 
 	return nil, err
