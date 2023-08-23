@@ -1,6 +1,7 @@
 package native
 
 import (
+	"math"
 	"testing"
 	"time"
 )
@@ -14,7 +15,9 @@ func TestClock(t *testing.T) {
 	if !isOk {
 		t.Fatalf("clock time is not a float64. got='%T'", got)
 	}
-	if (want/val) > 1 || (want/val) < 0.85 {
+
+	margin := math.Round((want/val)*100) / 100
+	if margin > 1 || margin < 0.9 {
 		t.Fatalf("wrong value for time. want='~%v' got='%v'", want, val)
 	}
 
