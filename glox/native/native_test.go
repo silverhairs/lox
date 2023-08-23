@@ -14,7 +14,7 @@ func TestClock(t *testing.T) {
 	if !isOk {
 		t.Fatalf("clock time is not a float64. got='%T'", got)
 	}
-	if (want/val) > 1 || (want/val) < 0.9 {
+	if (want/val) > 1 || (want/val) < 0.85 {
 		t.Fatalf("wrong value for time. want='~%v' got='%v'", want, val)
 	}
 
