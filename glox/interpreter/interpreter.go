@@ -358,6 +358,12 @@ func (i *Interpreter) VisitCall(expr *ast.Call) any {
 
 }
 
+func (i *Interpreter) VisitFunction(stmt *ast.Function) any {
+	fn := NewFunction(stmt)
+	i.Env.Define(stmt.Name.Lexeme, fn)
+	return nil
+}
+
 func (i *Interpreter) execLoop(loop *ast.WhileStmt) (res any, err error) {
 	//FIXME: The `continue` statement doesn't seem to work as expected.
 	defer func() {
