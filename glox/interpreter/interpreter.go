@@ -6,7 +6,6 @@ import (
 	"glox/env"
 	"glox/exception"
 	"glox/native"
-	"glox/object"
 	"glox/token"
 	"io"
 	"math"
@@ -338,7 +337,7 @@ func (i *Interpreter) VisitCall(expr *ast.Call) any {
 		if err != nil {
 			return err
 		}
-		function, isOk := calle.(object.Callable[*Interpreter])
+		function, isOk := calle.(Callable)
 		if !isOk {
 			return exception.Runtime(expr.Paren, fmt.Sprintf("'%v' cannot be called.", expr.Callee.String()))
 		} else if function.Arity() != len(args) {
