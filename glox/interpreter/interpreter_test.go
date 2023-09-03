@@ -47,6 +47,7 @@ func TestInterpret(t *testing.T) {
 		`let count=0; while(count<1){count=count+1;}`:                                              "1",
 		`let count=0; while(count<5){count=count+1;}`:                                              "1\n2\n3\n4\n5",
 		`fun greets(name){print "Hello "+name+"!";}greets("John");`:                                "Hello John!\n<nil>",
+		`fun count(n) {if(n > 1) count(n-1); print n;} count(5);`:                                  "1\n<nil>\n2\n<nil>\n3\n<nil>\n4\n<nil>\n5\n<nil>",
 	}
 
 	for code, expected := range fixtures {
