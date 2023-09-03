@@ -720,7 +720,7 @@ func TestParseStatement(t *testing.T) {
 					Lexeme:  "return",
 					Line:    1,
 				},
-				ast.NewLiteralExpression(nil),
+				nil,
 			),
 		},
 	}
@@ -745,7 +745,7 @@ func TestParseStatement(t *testing.T) {
 		stmt := program[0]
 
 		if passed := testStmt(stmt, test.want, t); !passed {
-			t.Errorf("testStmt failed for '%s'", code)
+			t.Errorf("testStmt failed for code -> `%s`", code)
 			t.Fail()
 		}
 	}

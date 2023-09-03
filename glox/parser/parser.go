@@ -128,8 +128,6 @@ func (p *Parser) returnStmt() (ast.Statement, error) {
 	var err error
 	if !p.check(token.SEMICOLON) {
 		expr, err = p.expression()
-	} else {
-		expr = ast.NewLiteralExpression(nil)
 	}
 	if err == nil {
 		_, err = p.consume(token.SEMICOLON, "expected semi-colon after return statement.")
