@@ -66,6 +66,17 @@ func (i *Interpreter) VisitIfStmt(stmt *ast.IfStmt) any {
 	return nil
 }
 
+func (i *Interpreter) VisitReturn(stmt *ast.Return) any {
+	var value any
+	if stmt.Expr != nil {
+		value = i.evaluate(stmt.Expr)
+		if err, isErr := value.(error); isErr {
+			return err
+		}
+	}
+	panic(errReturn{value: value})
+}
+
 func (i *Interpreter) VisitExprStmt(stmt *ast.ExpressionStmt) any {
 	val := i.evaluate(stmt.Exp)
 	if err, isErr := val.(error); isErr {
