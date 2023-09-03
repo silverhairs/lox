@@ -690,6 +690,39 @@ func TestParseStatement(t *testing.T) {
 				},
 			),
 		},
+		{
+			code: "return 1+5;",
+			want: ast.NewReturn(
+				token.Token{
+					Type:    token.RETURN,
+					Literal: nil,
+					Lexeme:  "return",
+					Line:    1,
+				},
+				ast.NewBinaryExpression(
+					ast.NewLiteralExpression(1),
+					token.Token{
+						Type:    token.PLUS,
+						Lexeme:  "+",
+						Literal: nil,
+						Line:    1,
+					},
+					ast.NewLiteralExpression(5),
+				),
+			),
+		},
+		{
+			code: "return ;",
+			want: ast.NewReturn(
+				token.Token{
+					Type:    token.RETURN,
+					Literal: nil,
+					Lexeme:  "return",
+					Line:    1,
+				},
+				ast.NewLiteralExpression(nil),
+			),
+		},
 	}
 
 	for _, test := range tests {
@@ -1271,6 +1304,25 @@ func testIfStmt(stmt ast.Statement, want *ast.IfStmt, t *testing.T) bool {
 
 }
 
+func testReturnStmt(got ast.Statement, want *ast.Return, t *testing.T) bool {
+	stmt, isOk := got.(*ast.Return)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.Return. got='%T'", got)
+		return false
+	}
+	if stmt.Keyword.Type != token.RETURN {
+		t.Errorf("stmt.Keyword is not a token.RETURN. got='%v'", stmt.Keyword.Type)
+		return false
+	}
+
+	if !testExpression(stmt.Expr, want.Expr, t) {
+		t.Errorf("returnStmt.Expr is wrong. want='%v' got='%v'", want.Expr, stmt.Expr)
+		return false
+	}
+
+	return true
+}
+
 func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 	if want == nil {
 		if stmt != nil {
@@ -1296,6 +1348,8 @@ func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 		return testBranch(stmt, want, t)
 	case *ast.Function:
 		return testFunction(stmt, want, t)
+	case *ast.Return:
+		return testReturnStmt(stmt, want, t)
 	default:
 		t.Errorf("statement %T does not have a testing function. consider adding one", want)
 		return false
