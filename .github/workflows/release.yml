@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - windows-artifact # for testing purposes
   workflow_dispatch:
 
 defaults:
@@ -191,6 +190,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.download_windows_artifact.download-path }}/glox-windows-amd64.exe
+          asset_path: ${{ steps.download_windows_artifact.ouputs.download-path }}/glox-windows-amd64.exe
           asset_name: glox-windows-amd64
           asset_content_type: application/octet-stream
