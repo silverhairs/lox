@@ -103,7 +103,7 @@ jobs:
       - name: Upload artifact for ${{ matrix.os }} / ${{ matrix.arch }}
         uses: actions/upload-artifact@v2
         with:
-          name: glox-windows-${{ matrix.arch }}
+          name: glox-windows-${{ matrix.arch }}.exe
           path: ${{ runner.temp }}\glox\glox-windows-${{ matrix.arch }}.exe
 
   publish_release:
