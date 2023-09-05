@@ -104,7 +104,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: glox-windows-${{ matrix.arch }}.exe
-          path: ${{ runner.temp }}\glox\glox-windows-${{ matrix.arch }}.exe
+          path: .\glox\glox-windows-${{ matrix.arch }}.exe
 
   publish_release:
     runs-on: ubuntu-latest
