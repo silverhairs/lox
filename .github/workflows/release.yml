@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - windows-artifact # for testing purposes
   workflow_dispatch:
 
 defaults:
@@ -107,7 +108,8 @@ jobs:
 
   publish_release:
     runs-on: ubuntu-latest
-    needs: [build_macos_artifacts, build_linux_artifacts]
+    needs:
+      [build_macos_artifacts, build_linux_artifacts, build_windows_artifact]
     steps:
       - uses: actions/checkout@v3
 
