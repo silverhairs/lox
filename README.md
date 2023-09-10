@@ -14,7 +14,10 @@ You have two options to run the REPL, you can either install the latest released
 
 ### Using Release Binary
 
+
 The script below will download the latest released binary in your system and request for execution permission, once granted, you can start the REPL by executing the command `./glox` in the directory where you ran the script.
+
+> Disclaimer: This script does not work on windows, if you use windows, you can manually open the [latest release page](https://github.com/silverhairs/crafting-interpreters/releases/latest) and download the `glox-windows-amd64.exe` file.
 
 ```sh
 curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releases/latest \
@@ -29,7 +32,6 @@ curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releas
 
 - You need to have [cURL](https://curl.se/) installed in your system for the above script to work.
 - I don't have a specific release schedule, I just cut a new release whenever a major feature has been implemented.
-- Currently the latest release only holds binaries for macos and linux, if you have windows... idk what to tell yah (seek help i guess). I will include windows later in the release workflow though, I just need to get a windows computer to test.
 
 ### Using source code
 
