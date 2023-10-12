@@ -51,6 +51,7 @@ func TestInterpret(t *testing.T) {
 		`fun add(x,y){ return x+y; } let five = add(2,3); print five;`:                                "5",
 		`fun concat(base,suffix){return base+suffix;} let word = concat("humor", "ist"); print word;`: "humorist",
 		`fun test(max){let x=0; while(true){ if(x==max){ return;} print x; x=x+1; }} test(5);`:        "0\n1\n1\n2\n2\n3\n3\n4\n4\n5\n<nil>",
+		`fun fib(n) { if(n <= 1){ return n;} else { return fib(n-1) + fib(n-2);}} print fib(10);`:     "55",
 	}
 
 	for code, expected := range fixtures {

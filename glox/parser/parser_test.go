@@ -1016,6 +1016,59 @@ func TestParseFunction(t *testing.T) {
 				},
 			),
 		},
+		{
+			code: `fun fib(n) { if(n <= 1){ return n;} else { return fib(n-1) + fib(n-2);}}`,
+			want: ast.NewFunction(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "fib", Line: 1},
+				[]token.Token{{Type: token.IDENTIFIER, Lexeme: "n", Line: 1}},
+				[]ast.Statement{
+					ast.NewIfStmt(
+						ast.NewBinaryExpression(
+							ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "n", Line: 1}),
+							token.Token{Type: token.LESS_EQ, Lexeme: "<=", Line: 1},
+							ast.NewLiteralExpression(1),
+						),
+						ast.NewBlockStmt(
+							[]ast.Statement{
+								ast.NewReturn(
+									token.Token{Type: token.RETURN, Lexeme: "return", Line: 1},
+									ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "n", Line: 1}),
+								)},
+						),
+						ast.NewBlockStmt(
+							[]ast.Statement{
+								ast.NewReturn(
+									token.Token{Type: token.RETURN, Lexeme: "return", Line: 1},
+									ast.NewBinaryExpression(
+										ast.NewCall(
+											ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "fib", Line: 1}),
+											token.Token{Type: token.R_PAREN, Lexeme: ")", Line: 1},
+											[]ast.Expression{
+												ast.NewBinaryExpression(
+													ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "n", Line: 1}),
+													token.Token{Type: token.MINUS, Lexeme: "-", Line: 1},
+													ast.NewLiteralExpression(1),
+												),
+											},
+										),
+										token.Token{Type: token.PLUS, Lexeme: "+", Line: 1},
+										ast.NewCall(
+											ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "fib", Line: 1}),
+											token.Token{Type: token.R_PAREN, Lexeme: ")", Line: 1},
+											[]ast.Expression{
+												ast.NewBinaryExpression(
+													ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "n", Line: 1}),
+													token.Token{Type: token.MINUS, Lexeme: "-", Line: 1},
+													ast.NewLiteralExpression(2),
+												),
+											},
+										),
+									),
+								),
+							},
+						),
+					)}),
+		},
 	}
 
 	for _, test := range tests {
