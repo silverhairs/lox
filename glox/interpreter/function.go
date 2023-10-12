@@ -25,13 +25,14 @@ func (fn *LoxFunction) Call(i *Interpreter, args []any) (value any) {
 			}
 		}
 	}()
-	env := env.New(i.Env)
+
+	scope := env.New(i.Env)
 	for i, param := range fn.declaration.Params {
 		arg := args[i]
-		env.Define(param.Lexeme, arg)
+		scope.Define(param.Lexeme, arg)
 	}
-	i.executeBlock(fn.declaration.Body, env)
-	return value
+	i.executeBlock(fn.declaration.Body, scope)
+	return nil
 }
 
 func (fn *LoxFunction) Arity() int {
