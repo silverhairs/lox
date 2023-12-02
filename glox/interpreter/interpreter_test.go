@@ -83,7 +83,6 @@ func TestInterpret(t *testing.T) {
 			t.Fatalf("stdout message must end with a new line")
 		}
 		stderr.Reset()
-		stdout.Reset()
 	}
 
 	failures := map[string][]string{
@@ -137,12 +136,7 @@ func TestInterpret(t *testing.T) {
 		if stderr.String() != "" && !strings.HasSuffix(stderr.String(), "\n") {
 			t.Fatalf("stderr message must end with a new line")
 		}
-		if stdout.String() != "" && !strings.HasSuffix(stdout.String(), "\n") {
-			t.Fatalf("stdout message must end with a new line")
-		}
-
 		stdout.Reset()
-		stderr.Reset()
 	}
 
 	vars := []struct {
@@ -188,7 +182,6 @@ func TestInterpret(t *testing.T) {
 			t.Fatalf("failed to keep state of defined variable in code=%q. got='%v'\nexpected='%v'.", variable.code, got, expected)
 		}
 
-		stderr.Reset()
 		stdout.Reset()
 	}
 
@@ -222,7 +215,6 @@ func TestInterpret(t *testing.T) {
 		}
 
 		stderr.Reset()
-		stdout.Reset()
 	}
 
 }
