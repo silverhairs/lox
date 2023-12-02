@@ -82,6 +82,8 @@ func TestInterpret(t *testing.T) {
 		if stdout.String() != "" && !strings.HasSuffix(stdout.String(), "\n") {
 			t.Fatalf("stdout message must end with a new line")
 		}
+
+		stdout.Reset()
 		stderr.Reset()
 	}
 
@@ -137,6 +139,7 @@ func TestInterpret(t *testing.T) {
 			t.Fatalf("stderr message must end with a new line")
 		}
 		stdout.Reset()
+		stderr.Reset()
 	}
 
 	vars := []struct {
@@ -183,6 +186,7 @@ func TestInterpret(t *testing.T) {
 		}
 
 		stdout.Reset()
+		stderr.Reset()
 	}
 
 	errors := []struct {
@@ -214,6 +218,7 @@ func TestInterpret(t *testing.T) {
 			}
 		}
 
+		stdout.Reset()
 		stderr.Reset()
 	}
 
