@@ -690,6 +690,39 @@ func TestParseStatement(t *testing.T) {
 				},
 			),
 		},
+		{
+			code: "return 1+5;",
+			want: ast.NewReturn(
+				token.Token{
+					Type:    token.RETURN,
+					Literal: nil,
+					Lexeme:  "return",
+					Line:    1,
+				},
+				ast.NewBinaryExpression(
+					ast.NewLiteralExpression(1),
+					token.Token{
+						Type:    token.PLUS,
+						Lexeme:  "+",
+						Literal: nil,
+						Line:    1,
+					},
+					ast.NewLiteralExpression(5),
+				),
+			),
+		},
+		{
+			code: "return ;",
+			want: ast.NewReturn(
+				token.Token{
+					Type:    token.RETURN,
+					Literal: nil,
+					Lexeme:  "return",
+					Line:    1,
+				},
+				nil,
+			),
+		},
 	}
 
 	for _, test := range tests {
@@ -712,7 +745,7 @@ func TestParseStatement(t *testing.T) {
 		stmt := program[0]
 
 		if passed := testStmt(stmt, test.want, t); !passed {
-			t.Errorf("testStmt failed for '%s'", code)
+			t.Errorf("testStmt failed for code -> `%s`", code)
 			t.Fail()
 		}
 	}
@@ -982,6 +1015,59 @@ func TestParseFunction(t *testing.T) {
 					ast.NewPrintStmt(ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "a", Line: 1})),
 				},
 			),
+		},
+		{
+			code: `fun fib(n) { if(n <= 1){ return n;} else { return fib(n-1) + fib(n-2);}}`,
+			want: ast.NewFunction(
+				token.Token{Type: token.IDENTIFIER, Lexeme: "fib", Line: 1},
+				[]token.Token{{Type: token.IDENTIFIER, Lexeme: "n", Line: 1}},
+				[]ast.Statement{
+					ast.NewIfStmt(
+						ast.NewBinaryExpression(
+							ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "n", Line: 1}),
+							token.Token{Type: token.LESS_EQ, Lexeme: "<=", Line: 1},
+							ast.NewLiteralExpression(1),
+						),
+						ast.NewBlockStmt(
+							[]ast.Statement{
+								ast.NewReturn(
+									token.Token{Type: token.RETURN, Lexeme: "return", Line: 1},
+									ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "n", Line: 1}),
+								)},
+						),
+						ast.NewBlockStmt(
+							[]ast.Statement{
+								ast.NewReturn(
+									token.Token{Type: token.RETURN, Lexeme: "return", Line: 1},
+									ast.NewBinaryExpression(
+										ast.NewCall(
+											ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "fib", Line: 1}),
+											token.Token{Type: token.R_PAREN, Lexeme: ")", Line: 1},
+											[]ast.Expression{
+												ast.NewBinaryExpression(
+													ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "n", Line: 1}),
+													token.Token{Type: token.MINUS, Lexeme: "-", Line: 1},
+													ast.NewLiteralExpression(1),
+												),
+											},
+										),
+										token.Token{Type: token.PLUS, Lexeme: "+", Line: 1},
+										ast.NewCall(
+											ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "fib", Line: 1}),
+											token.Token{Type: token.R_PAREN, Lexeme: ")", Line: 1},
+											[]ast.Expression{
+												ast.NewBinaryExpression(
+													ast.NewVariable(token.Token{Type: token.IDENTIFIER, Lexeme: "n", Line: 1}),
+													token.Token{Type: token.MINUS, Lexeme: "-", Line: 1},
+													ast.NewLiteralExpression(2),
+												),
+											},
+										),
+									),
+								),
+							},
+						),
+					)}),
 		},
 	}
 
@@ -1271,6 +1357,25 @@ func testIfStmt(stmt ast.Statement, want *ast.IfStmt, t *testing.T) bool {
 
 }
 
+func testReturnStmt(got ast.Statement, want *ast.Return, t *testing.T) bool {
+	stmt, isOk := got.(*ast.Return)
+	if !isOk {
+		t.Errorf("stmt is not a *ast.Return. got='%T'", got)
+		return false
+	}
+	if stmt.Keyword.Type != token.RETURN {
+		t.Errorf("stmt.Keyword is not a token.RETURN. got='%v'", stmt.Keyword.Type)
+		return false
+	}
+
+	if !testExpression(stmt.Expr, want.Expr, t) {
+		t.Errorf("returnStmt.Expr is wrong. want='%v' got='%v'", want.Expr, stmt.Expr)
+		return false
+	}
+
+	return true
+}
+
 func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 	if want == nil {
 		if stmt != nil {
@@ -1296,6 +1401,8 @@ func testStmt(stmt ast.Statement, want ast.Statement, t *testing.T) bool {
 		return testBranch(stmt, want, t)
 	case *ast.Function:
 		return testFunction(stmt, want, t)
+	case *ast.Return:
+		return testReturnStmt(stmt, want, t)
 	default:
 		t.Errorf("statement %T does not have a testing function. consider adding one", want)
 		return false

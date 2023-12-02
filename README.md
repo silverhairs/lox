@@ -59,6 +59,7 @@ Production rules:
 
     statement  -> exprStmt
                 | ifStmt
+                | returnStmt
                 | printStmt
                 | blockStmt ;
     exprStmt   -> expression ";" ;
@@ -66,6 +67,7 @@ Production rules:
                 ("else" statement)? ;
     printStmt  -> "print" expression ";" ;
     blockStmt  -> "{" declaration* "}" ;
+    returnStmt -> "return" expression? ";" ;
 
     expression -> literal
                 | unary

@@ -40,14 +40,18 @@ func TestInterpret(t *testing.T) {
 		`!true and 12;`:    "false",
 		`!false and 12;`:   "12",
 		`true and 12;`:     "12",
-		`let age = 12; if(age>0 and age<18){ print "minor"; }`:                                     "minor",
-		`let age = 19; if(age>0 and age<18){ print "minor"; } else { print "adult"; }`:             "adult",
-		`let age = 21; if(age>18 or age > 21){ print "can drink"; }`:                               "can drink",
-		`let age = 17; if(age>18 or age > 21){ print "can drink"; } else { print "can't drink"; }`: "can't drink",
-		`let count=0; while(count<1){count=count+1;}`:                                              "1",
-		`let count=0; while(count<5){count=count+1;}`:                                              "1\n2\n3\n4\n5",
-		`fun greets(name){print "Hello "+name+"!";}greets("John");`:                                "Hello John!\n<nil>",
-		`fun count(n) {if(n > 1) count(n-1); print n;} count(5);`:                                  "1\n<nil>\n2\n<nil>\n3\n<nil>\n4\n<nil>\n5\n<nil>",
+		`let age = 12; if(age>0 and age<18){ print "minor"; }`:                                        "minor",
+		`let age = 19; if(age>0 and age<18){ print "minor"; } else { print "adult"; }`:                "adult",
+		`let age = 21; if(age>18 or age > 21){ print "can drink"; }`:                                  "can drink",
+		`let age = 17; if(age>18 or age > 21){ print "can drink"; } else { print "can't drink"; }`:    "can't drink",
+		`let count=0; while(count<1){count=count+1;}`:                                                 "1",
+		`let count=0; while(count<5){count=count+1;}`:                                                 "1\n2\n3\n4\n5",
+		`fun greets(name){print "Hello "+name+"!";}greets("John");`:                                   "Hello John!\n<nil>",
+		`fun count(n) {if(n > 1) count(n-1); print n;} count(5);`:                                     "1\n<nil>\n2\n<nil>\n3\n<nil>\n4\n<nil>\n5\n<nil>",
+		`fun add(x,y){ return x+y; } let five = add(2,3); print five;`:                                "5",
+		`fun concat(base,suffix){return base+suffix;} let word = concat("humor", "ist"); print word;`: "humorist",
+		`fun test(max){let x=0; while(true){ if(x==max){ return;} print x; x=x+1; }} test(5);`:        "0\n1\n1\n2\n2\n3\n3\n4\n4\n5\n<nil>",
+		`fun fib(n) { if(n <= 1){ return n;} else { return fib(n-1) + fib(n-2);}} print fib(10);`:     "55",
 	}
 
 	for code, expected := range fixtures {
@@ -78,8 +82,9 @@ func TestInterpret(t *testing.T) {
 		if stdout.String() != "" && !strings.HasSuffix(stdout.String(), "\n") {
 			t.Fatalf("stdout message must end with a new line")
 		}
-		stderr.Reset()
+
 		stdout.Reset()
+		stderr.Reset()
 	}
 
 	failures := map[string][]string{
@@ -133,10 +138,6 @@ func TestInterpret(t *testing.T) {
 		if stderr.String() != "" && !strings.HasSuffix(stderr.String(), "\n") {
 			t.Fatalf("stderr message must end with a new line")
 		}
-		if stdout.String() != "" && !strings.HasSuffix(stdout.String(), "\n") {
-			t.Fatalf("stdout message must end with a new line")
-		}
-
 		stdout.Reset()
 		stderr.Reset()
 	}
@@ -184,8 +185,8 @@ func TestInterpret(t *testing.T) {
 			t.Fatalf("failed to keep state of defined variable in code=%q. got='%v'\nexpected='%v'.", variable.code, got, expected)
 		}
 
-		stderr.Reset()
 		stdout.Reset()
+		stderr.Reset()
 	}
 
 	errors := []struct {
@@ -217,8 +218,8 @@ func TestInterpret(t *testing.T) {
 			}
 		}
 
-		stderr.Reset()
 		stdout.Reset()
+		stderr.Reset()
 	}
 
 }

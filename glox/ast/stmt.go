@@ -13,6 +13,7 @@ type StmtVisitor interface {
 	VisitWhile(*WhileStmt) any
 	VisitBranch(*BranchStmt) any
 	VisitFunction(*Function) any
+	VisitReturn(*Return) any
 }
 
 type Statement interface {
@@ -120,4 +121,17 @@ func NewFunction(name token.Token, params []token.Token, body []Statement) *Func
 
 func (fn *Function) Accept(v StmtVisitor) any {
 	return v.VisitFunction(fn)
+}
+
+type Return struct {
+	Keyword token.Token
+	Expr    Expression
+}
+
+func NewReturn(kw token.Token, expr Expression) *Return {
+	return &Return{Keyword: kw, Expr: expr}
+}
+
+func (r *Return) Accept(v StmtVisitor) any {
+	return v.VisitReturn(r)
 }

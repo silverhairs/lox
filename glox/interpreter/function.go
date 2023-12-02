@@ -14,13 +14,24 @@ func NewFunction(declaration *ast.Function) *LoxFunction {
 	return &LoxFunction{declaration: declaration}
 }
 
-func (fn *LoxFunction) Call(i *Interpreter, args []any) any {
-	env := env.New(i.Env)
+func (fn *LoxFunction) Call(i *Interpreter, args []any) (value any) {
+	defer func() {
+		if r := recover(); r != nil {
+			if rtrn, isReturn := r.(errReturn); !isReturn {
+				panic(r)
+			} else {
+				value = rtrn.value
+				return
+			}
+		}
+	}()
+
+	scope := env.New(i.Env)
 	for i, param := range fn.declaration.Params {
 		arg := args[i]
-		env.Define(param.Lexeme, arg)
+		scope.Define(param.Lexeme, arg)
 	}
-	i.executeBlock(fn.declaration.Body, env)
+	i.executeBlock(fn.declaration.Body, scope)
 	return nil
 }
 
@@ -29,5 +40,5 @@ func (fn *LoxFunction) Arity() int {
 }
 
 func (fn *LoxFunction) String() string {
-	return fmt.Sprintf("<fn '%s'>", fn.declaration.Name.Lexeme)
+	return fmt.Sprintf("<fn %s>", fn.declaration.Name.Lexeme)
 }

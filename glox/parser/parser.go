@@ -47,6 +47,8 @@ func (p *Parser) declaration() (ast.Statement, error) {
 		return p.function("function")
 	} else if p.match(token.IF) {
 		return p.ifStatement()
+	} else if p.match(token.RETURN) {
+		return p.returnStmt()
 	} else if p.match(token.LET) {
 		return p.letDeclaration()
 	}
@@ -119,6 +121,19 @@ func (p *Parser) ifStatement() (ast.Statement, error) {
 
 	return ast.NewIfStmt(condition, then, orElse), err
 
+}
+func (p *Parser) returnStmt() (ast.Statement, error) {
+	keyword := p.previous()
+	var expr ast.Expression
+	var err error
+	if !p.check(token.SEMICOLON) {
+		expr, err = p.expression()
+	}
+	if err == nil {
+		_, err = p.consume(token.SEMICOLON, "expected semi-colon after return statement.")
+		return ast.NewReturn(keyword, expr), err
+	}
+	return nil, err
 }
 
 func (p *Parser) letDeclaration() (ast.Statement, error) {
