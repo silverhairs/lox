@@ -15,22 +15,17 @@ You have two options to run the REPL, you can either install the latest released
 ### Using Release Binary
 
 
-The script below will download the latest released binary in your system and request for execution permission, once granted, you can start the REPL by executing the command `./glox` in the directory where you ran the script.
+The command below will download the latest released binary in your system, once downloaded, you can start the REPL by executing the downloaded binary in the directory where you ran the command.
 
-> Disclaimer: This script does not work on windows, if you use windows, you can manually open the [latest release page](https://github.com/silverhairs/lox/releases/latest) and download the `glox-windows-amd64.exe` file.
+> Disclaimer: The command does not work on windows, if you use windows, you can manually open the [latest release page](https://github.com/silverhairs/lox/releases/latest) and download the `glox-windows-amd64.exe` file.
 
 ```sh
-curl -L -s https://api.github.com/repos/silverhairs/lox/releases/latest \
-| grep "browser_download_url.*glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m | sed 's/x86_64/amd64/')" \
-| cut -d '"' -f 4 \
-| wget -qi - \
-&& chmod +x glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m | sed 's/x86_64/amd64/') \
-&& mv glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m | sed 's/x86_64/amd64/') $PWD/glox
+curl -fsSL https://raw.githubusercontent.com/silverhairs/lox/main/install.sh | sh
 ```
 
 **About the released binary**:
 
-- You need to have [cURL](https://curl.se/) installed in your system for the above script to work.
+- You need to have [cURL](https://curl.se/) installed in your system for the above command to work.
 - I don't have a specific release schedule, I just cut a new release whenever a major feature has been implemented.
 
 ### Using source code
