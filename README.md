@@ -17,10 +17,10 @@ You have two options to run the REPL, you can either install the latest released
 
 The script below will download the latest released binary in your system and request for execution permission, once granted, you can start the REPL by executing the command `./glox` in the directory where you ran the script.
 
-> Disclaimer: This script does not work on windows, if you use windows, you can manually open the [latest release page](https://github.com/silverhairs/crafting-interpreters/releases/latest) and download the `glox-windows-amd64.exe` file.
+> Disclaimer: This script does not work on windows, if you use windows, you can manually open the [latest release page](https://github.com/silverhairs/lox/releases/latest) and download the `glox-windows-amd64.exe` file.
 
 ```sh
-curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releases/latest \
+curl -L -s https://api.github.com/repos/silverhairs/lox/releases/latest \
 | grep "browser_download_url.*glox-$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/darwin/macos/')-$(uname -m | sed 's/x86_64/amd64/')" \
 | cut -d '"' -f 4 \
 | wget -qi - \
@@ -36,7 +36,7 @@ curl -L -s https://api.github.com/repos/silverhairs/crafting-interpreters/releas
 ### Using source code
 
 1. Clone the repo
-2. Navigate to `crafting-interpreters/glox` (command: `cd ./glox`)
+2. Navigate to `lox/glox` (command: `cd ./glox`)
 3. Run the main.go file (command: `go run main.go`)
 
 **Requirements**:
